@@ -9,6 +9,9 @@ int main() {
   auto f = file::open_for_reading("example.glb");
   if (f.read_u32() != 'FTlg') throw invalid_magic {};
   if (f.read_u32() != 2) throw invalid_version {};
-  auto len = f.read_u32();
-  putln(len);
+  f.read_u32(); // Length
+
+  auto json_len = f.read_u32();
+  if (f.read_u32() != 'NOSJ') throw invalid_magic {};
+  putln(json_len);
 }
