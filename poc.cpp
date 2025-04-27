@@ -15,9 +15,13 @@ int main() {
   f.read_u32(); // Length (TODO: validate)
 
   // TODO: validate length
-  hai::array<char> json { f.read_u32() };
+  hai::array<char> json_src { f.read_u32() };
   if (f.read_u32() != 'NOSJ') throw invalid_magic {};
-  f.read(json);
+  f.read(json_src);
 
-  jason::parse(jute::view { json.begin(), json.size() });
+  using namespace jason::ast::nodes;
+  auto json = jason::parse(json_src);
+  for (auto &[k, v] : cast<dict>(json)) {
+    putln(k);
+  }
 }
