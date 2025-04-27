@@ -2,6 +2,7 @@ module;
 #include <stdio.h>
 
 export module file;
+import hai;
 import no;
 
 static_assert(sizeof(unsigned) == 4);
@@ -23,6 +24,9 @@ public:
     unsigned res {};
     if (fread(&res, sizeof(unsigned), 1, m_f) != 1) throw read_error {};
     return res;
+  }
+  void read(hai::array<char> & buf) {
+    if (fread(buf.begin(), buf.size(), 1, m_f) != 1) throw read_error {};
   }
 
   [[nodiscard]] static file open_for_reading(const char * name) {

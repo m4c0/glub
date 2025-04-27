@@ -1,5 +1,6 @@
 #pragma leco tool
 import file;
+import hai;
 import print;
 
 struct invalid_magic {};
@@ -9,9 +10,9 @@ int main() {
   auto f = file::open_for_reading("example.glb");
   if (f.read_u32() != 'FTlg') throw invalid_magic {};
   if (f.read_u32() != 2) throw invalid_version {};
-  f.read_u32(); // Length
+  f.read_u32(); // Length (TODO: validate)
 
-  auto json_len = f.read_u32();
+  // TODO: validate length
+  hai::array<char> json { f.read_u32() };
   if (f.read_u32() != 'NOSJ') throw invalid_magic {};
-  putln(json_len);
 }
