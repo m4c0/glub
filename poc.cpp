@@ -1,6 +1,8 @@
 #pragma leco tool
 import file;
 import hai;
+import jason;
+import jute;
 import print;
 
 struct invalid_magic {};
@@ -15,4 +17,7 @@ int main() {
   // TODO: validate length
   hai::array<char> json { f.read_u32() };
   if (f.read_u32() != 'NOSJ') throw invalid_magic {};
+  f.read(json);
+
+  jason::parse(jute::view { json.begin(), json.size() });
 }
