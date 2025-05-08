@@ -21,7 +21,22 @@ int main() {
 
   using namespace jason::ast::nodes;
   auto json = jason::parse(json_src);
-  for (auto &[k, v] : cast<dict>(json)) {
+  auto & root = cast<dict>(json);
+  for (auto & b : cast<array>(root["buffers"])) {
+    auto & bd = cast<dict>(b);
+    auto len = cast<number>(bd["byteLength"]).integer();
+    putln("buffer len: ", len);
+  }
+  for (auto & b : cast<array>(root["bufferViews"])) {
+    auto & bd = cast<dict>(b);
+    auto buf = cast<number>(bd["buffer"]).integer();
+    auto len = cast<number>(bd["byteLength"]).integer();
+    auto ofs = bd.has_key("byteOffset")
+      ? cast<number>(bd["byteOffset"]).integer()
+      : 0;
+    putln("buffer view len: ", len, ", ofs: ", ofs, ", id: ", buf);
+  }
+  for (auto &[k, v] : root) {
     putln(k);
   }
 }
