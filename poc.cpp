@@ -23,6 +23,8 @@ int main() {
   auto json = jason::parse(json_src);
   auto & root = cast<dict>(json);
 
+  // TODO: validate "asset" version, etc
+
   for (auto & b : cast<array>(root["buffers"])) {
     auto & bd = cast<dict>(b);
     auto len = cast<number>(bd["byteLength"]).integer();
@@ -55,9 +57,33 @@ int main() {
   auto & scenes = cast<array>(root["scenes"]);
   auto & scene = cast<dict>(scenes[sid]);
   auto & snodes = cast<array>(scene["nodes"]);
-  for (auto &n : snodes) putln("n ", cast<number>(n).integer());
+  for (auto & n : snodes) putln("scene n: ", cast<number>(n).integer());
 
-  for (auto &[k, v] : root) {
-    putln(k);
+  auto & nodes = cast<array>(root["nodes"]);
+  for (auto & n : nodes) {
+    auto & nd = cast<dict>(n);
+    auto mesh = cast<number>(nd["mesh"]).integer();
+    putln("node mesh: ", mesh);
+  }
+
+  auto & meshes = cast<array>(root["meshes"]);
+  for (auto & m : meshes) {
+    putln("mesh:");
+    auto & md = cast<dict>(m);
+    auto & prim = cast<array>(md["primitives"]);
+    for (auto & p : prim) {
+      auto & pd = cast<dict>(p);
+
+      auto & attr = cast<dict>(pd["attributes"]);
+      for (auto &[k, v]: attr) {
+        auto vv = cast<number>(v).integer();
+        putln("attr ", k, ": ", vv);
+      }
+
+      if (pd.has_key("indices")) {
+        auto ind = cast<number>(pd["indices"]).integer();
+        putln("idx: ", ind);
+      }
+    }
   }
 }
