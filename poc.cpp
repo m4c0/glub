@@ -36,6 +36,13 @@ int main() {
       : 0;
     putln("buffer view len: ", len, ", ofs: ", ofs, ", id: ", buf);
   }
+
+  auto sid = cast<number>(root["scene"]).integer();
+  auto & scenes = cast<array>(root["scenes"]);
+  auto & scene = cast<dict>(scenes[sid]);
+  auto & snodes = cast<array>(scene["nodes"]);
+  for (auto &n : snodes) putln("n ", cast<number>(n).integer());
+
   for (auto &[k, v] : root) {
     putln(k);
   }
