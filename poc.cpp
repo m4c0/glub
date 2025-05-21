@@ -8,20 +8,36 @@ import print;
 struct invalid_magic {};
 struct invalid_version {};
 
-int main() {
-  auto f = file::open_for_reading("example.glb");
-  if (f.read_u32() != 'FTlg') throw invalid_magic {};
-  if (f.read_u32() != 2) throw invalid_version {};
-  f.read_u32(); // Length (TODO: validate)
+class metadata {
+  hai::array<char> m_json_src;
+  jason::ast::node_ptr m_json;
+ 
+public:
+  explicit metadata(const char * filename) {
+    auto f = file::open_for_reading("example.glb");
+    if (f.read_u32() != 'FTlg') throw invalid_magic {};
+    if (f.read_u32() != 2) throw invalid_version {};
+    f.read_u32(); // Length (TODO: validate)
 
-  // TODO: validate length
-  hai::array<char> json_src { f.read_u32() };
-  if (f.read_u32() != 'NOSJ') throw invalid_magic {};
-  f.read(json_src);
+    // TODO: validate length
+    m_json_src = hai::array<char> { f.read_u32() };
+    if (f.read_u32() != 'NOSJ') throw invalid_magic {};
+    f.read(m_json_src);
+
+    m_json = jason::parse(m_json_src);
+  }
+  
+  auto & root() const {
+    using namespace jason::ast::nodes;
+    return cast<dict>(m_json);
+  }
+};
+
+int main() {
+  metadata md { "example.glb" };
 
   using namespace jason::ast::nodes;
-  auto json = jason::parse(json_src);
-  auto & root = cast<dict>(json);
+  auto & root = md.root();
 
   // TODO: validate "asset" version, etc
 
