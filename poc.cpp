@@ -5,26 +5,43 @@ import jason;
 import jute;
 import print;
 
+// TODO: better errors
 struct invalid_magic {};
 struct invalid_version {};
+struct unsupported_format {};
 
 class metadata {
   hai::array<char> m_json_src;
   jason::ast::node_ptr m_json;
+
+  hai::array<char> m_buf;
  
 public:
   explicit metadata(const char * filename) {
     auto f = file::open_for_reading("example.glb");
     if (f.read_u32() != 'FTlg') throw invalid_magic {};
     if (f.read_u32() != 2) throw invalid_version {};
-    f.read_u32(); // Length (TODO: validate)
+    f.read_u32(); // Length of whole file (TODO: validate)
 
-    // TODO: validate length
     m_json_src = hai::array<char> { f.read_u32() };
     if (f.read_u32() != 'NOSJ') throw invalid_magic {};
     f.read(m_json_src);
 
     m_json = jason::parse(m_json_src);
+
+    // TODO: validate "asset" version, etc
+
+    using namespace jason::ast::nodes;
+    auto & root = cast<dict>(m_json);
+    auto & buffers = cast<array>(root["buffers"]);
+    if (buffers.size() != 1) throw unsupported_format {};
+    auto & buffer = cast<dict>(buffers[0]);
+    unsigned buf_len = cast<number>(buffer["byteLength"]).integer();
+
+    m_buf = hai::array<char> { buf_len };
+    if (m_buf.size() > f.read_u32()) throw invalid_magic {};
+    if (f.read_u32() != '\0NIB') throw invalid_magic {};
+    f.read(m_buf);
   }
   
   auto & root() const {
@@ -38,8 +55,6 @@ int main() {
 
   using namespace jason::ast::nodes;
   auto & root = md.root();
-
-  // TODO: validate "asset" version, etc
 
   for (auto & b : cast<array>(root["buffers"])) {
     auto & bd = cast<dict>(b);
