@@ -80,6 +80,25 @@ public:
     using namespace jason::ast::nodes;
     return cast<dict>(m_json);
   }
+
+  auto buffer_view(unsigned id) {
+    using namespace jason::ast::nodes;
+    auto & root = cast<dict>(m_json);
+    auto & bv = cast<array>(root["bufferViews"]);
+    auto & bd = cast<dict>(bv[id]);
+
+    auto buf = cast<number>(bd["buffer"]).integer();
+    unsigned len = cast<number>(bd["byteLength"]).integer();
+    unsigned ofs = bd.has_key("byteOffset")
+      ? cast<number>(bd["byteOffset"]).integer()
+      : 0;
+
+    // TODO: validate stride
+    if (buf != 0) throw invalid_parameter {};
+    if (ofs + len > m_buf.size()) throw invalid_parameter {};
+
+    return jute::view { m_buf.begin() + ofs, len };
+  }
 };
 
 int main() {
