@@ -42,6 +42,13 @@ enum class comp_type { BYTE, UBYTE, SHORT, USHORT, UINT, FLOAT };
   return parse_comp_type(cast<number>(ad["componentType"]).integer());
 }
 
+struct accessor {
+  jute::view buf_view;
+  comp_type ctype;
+  type type;
+  int count;
+};
+
 class metadata {
   hai::array<char> m_json_src;
   jason::ast::node_ptr m_json;
@@ -83,8 +90,8 @@ public:
 
   auto buffer_view(unsigned id) {
     using namespace jason::ast::nodes;
-    auto & root = cast<dict>(m_json);
-    auto & bv = cast<array>(root["bufferViews"]);
+
+    auto & bv = cast<array>(root()["bufferViews"]);
     auto & bd = cast<dict>(bv[id]);
 
     auto buf = cast<number>(bd["buffer"]).integer();
@@ -99,16 +106,12 @@ public:
 
     return jute::view { m_buf.begin() + ofs, len };
   }
-};
 
-int main() {
-  metadata md { "example.glb" };
+  [[nodiscard]] accessor accessor(unsigned id) {
+    using namespace jason::ast::nodes;
 
-  using namespace jason::ast::nodes;
-  auto & root = md.root();
-
-  for (auto & a : cast<array>(root["accessors"])) {
-    auto & ad = cast<dict>(a);
+    auto & a = cast<array>(root()["accessors"]);
+    auto & ad = cast<dict>(a[id]);
     auto bv = ad.has_key("bufferView")
       ? cast<number>(ad["bufferView"]).integer()
       : 0;
@@ -116,11 +119,20 @@ int main() {
       ? cast<number>(ad["byteOffset"]).integer()
       : 0;
 
-    auto buf_view = md.buffer_view(bv).subview(ofs).after;
-    auto ctype = parse_comp_type(ad);
-    auto count = cast<number>(ad["count"]).integer();
-    auto type = parse_type(ad);
+    return {
+      .buf_view = buffer_view(bv).subview(ofs).after,
+      .ctype = parse_comp_type(ad),
+      .type = parse_type(ad),
+      .count = cast<number>(ad["count"]).integer(),
+    };
   }
+};
+
+int main() {
+  metadata md { "example.glb" };
+
+  using namespace jason::ast::nodes;
+  auto & root = md.root();
 
   auto sid = cast<number>(root["scene"]).integer();
   auto & scenes = cast<array>(root["scenes"]);
