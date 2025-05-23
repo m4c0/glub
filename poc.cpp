@@ -107,20 +107,6 @@ int main() {
   using namespace jason::ast::nodes;
   auto & root = md.root();
 
-  for (auto & b : cast<array>(root["buffers"])) {
-    auto & bd = cast<dict>(b);
-    auto len = cast<number>(bd["byteLength"]).integer();
-    putln("buffer len: ", len);
-  }
-  for (auto & b : cast<array>(root["bufferViews"])) {
-    auto & bd = cast<dict>(b);
-    auto buf = cast<number>(bd["buffer"]).integer();
-    auto len = cast<number>(bd["byteLength"]).integer();
-    auto ofs = bd.has_key("byteOffset")
-      ? cast<number>(bd["byteOffset"]).integer()
-      : 0;
-    putln("buffer view len: ", len, ", ofs: ", ofs, ", id: ", buf);
-  }
   for (auto & a : cast<array>(root["accessors"])) {
     auto & ad = cast<dict>(a);
     auto bv = ad.has_key("bufferView")
@@ -129,10 +115,11 @@ int main() {
     auto ofs = ad.has_key("byteOffset")
       ? cast<number>(ad["byteOffset"]).integer()
       : 0;
-    auto ctype = cast<number>(ad["componentType"]).integer();
+
+    auto buf_view = md.buffer_view(bv).subview(ofs).after;
+    auto ctype = parse_comp_type(ad);
     auto count = cast<number>(ad["count"]).integer();
-    auto type = cast<string>(ad["type"]).str();
-    putln("accessor view: ", bv, ", ofs: ", ofs, ", ctype: ", ctype, ", count: ", count, ", type: ", type);
+    auto type = parse_type(ad);
   }
 
   auto sid = cast<number>(root["scene"]).integer();
