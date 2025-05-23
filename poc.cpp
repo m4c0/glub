@@ -7,8 +7,40 @@ import print;
 
 // TODO: better errors
 struct invalid_magic {};
+struct invalid_parameter {};
 struct invalid_version {};
 struct unsupported_format {};
+
+enum class type { SCALAR, VEC2, VEC3, VEC4, MAT2, MAT3, MAT4 };
+[[nodiscard]] static constexpr type parse_type(jute::view str) {
+  if (str == "SCALAR") return type::SCALAR;
+  if (str == "VEC2")   return type::VEC2;
+  if (str == "VEC3")   return type::VEC3;
+  if (str == "VEC4")   return type::VEC4;
+  if (str == "MAT2")   return type::MAT2;
+  if (str == "MAT3")   return type::MAT3;
+  if (str == "MAT4")   return type::MAT4;
+  throw invalid_parameter {};
+}
+[[nodiscard]] static constexpr type parse_type(const jason::ast::nodes::dict & ad) {
+  using namespace jason::ast::nodes;
+  return parse_type(*cast<string>(ad["type"]).str());
+}
+
+enum class comp_type { BYTE, UBYTE, SHORT, USHORT, UINT, FLOAT };
+[[nodiscard]] static constexpr comp_type parse_comp_type(int n) {
+  if (n == 5120) return comp_type::BYTE;
+  if (n == 5121) return comp_type::UBYTE;
+  if (n == 5122) return comp_type::SHORT;
+  if (n == 5123) return comp_type::USHORT;
+  if (n == 5125) return comp_type::UINT;
+  if (n == 5126) return comp_type::FLOAT;
+  throw invalid_parameter {};
+}
+[[nodiscard]] static constexpr comp_type parse_comp_type(const jason::ast::nodes::dict & ad) {
+  using namespace jason::ast::nodes;
+  return parse_comp_type(cast<number>(ad["componentType"]).integer());
+}
 
 class metadata {
   hai::array<char> m_json_src;
