@@ -49,6 +49,13 @@ struct accessor {
   int count;
 };
 
+struct primitive {
+  accessor position;
+  accessor normal;
+  accessor uv0;
+  accessor indices;
+};
+
 class metadata {
   hai::array<char> m_json_src;
   jason::ast::node_ptr m_json;
@@ -107,7 +114,7 @@ public:
     return jute::view { m_buf.begin() + ofs, len };
   }
 
-  [[nodiscard]] accessor accessor(unsigned id) {
+  [[nodiscard]] ::accessor accessor(unsigned id) {
     using namespace jason::ast::nodes;
 
     auto & a = cast<array>(root()["accessors"]);
@@ -126,13 +133,19 @@ public:
       .count = cast<number>(ad["count"]).integer(),
     };
   }
+  [[nodiscard]] ::accessor accessor(unsigned id, type t, comp_type ct) {
+    auto a = accessor(id);
+    if (a.type != t) throw invalid_parameter {};
+    if (a.ctype != ct) throw invalid_parameter {};
+    return a;
+  }
 };
 
-int main() {
-  metadata md { "example.glb" };
+int main() try {
+  metadata meta { "example.glb" };
 
   using namespace jason::ast::nodes;
-  auto & root = md.root();
+  auto & root = meta.root();
 
   auto sid = cast<number>(root["scene"]).integer();
   auto & scenes = cast<array>(root["scenes"]);
@@ -155,16 +168,23 @@ int main() {
     for (auto & p : prim) {
       auto & pd = cast<dict>(p);
 
+      primitive prim {};
+
       auto & attr = cast<dict>(pd["attributes"]);
       for (auto &[k, v]: attr) {
         auto vv = cast<number>(v).integer();
-        putln("attr ", k, ": ", vv);
+        if      (*k == "POSITION")   prim.position = meta.accessor(vv, type::VEC3, comp_type::FLOAT);
+        else if (*k == "NORMAL")     prim.normal   = meta.accessor(vv, type::VEC3, comp_type::FLOAT);
+        else if (*k == "TEXCOORD_0") prim.uv0      = meta.accessor(vv, type::VEC2, comp_type::FLOAT);
+        else throw invalid_parameter {};
       }
 
       if (pd.has_key("indices")) {
         auto ind = cast<number>(pd["indices"]).integer();
-        putln("idx: ", ind);
+        prim.indices = meta.accessor(ind, type::SCALAR, comp_type::USHORT);
       }
     }
   }
+} catch (...) {
+  return 42;
 }
