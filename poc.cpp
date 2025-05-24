@@ -168,6 +168,8 @@ int main() try {
     for (auto & p : prim) {
       auto & pd = cast<dict>(p);
 
+      if (pd.has_key("topology")) throw invalid_parameter {};
+
       primitive prim {};
 
       auto & attr = cast<dict>(pd["attributes"]);
