@@ -56,6 +56,10 @@ struct primitive {
   accessor indices;
 };
 
+struct mesh {
+  hai::array<primitive> prims;
+};
+
 class metadata {
   hai::array<char> m_json_src;
   jason::ast::node_ptr m_json;
@@ -163,6 +167,19 @@ public:
 
     return prim;
   }
+  [[nodiscard]] ::mesh mesh(unsigned id) {
+    using namespace jason::ast::nodes;
+
+    auto & meshes = cast<array>(root()["meshes"]);
+    auto & md = cast<dict>(meshes[id]);
+    auto & prim = cast<array>(md["primitives"]);
+
+    ::mesh m { .prims { prim.size() } };
+    for (auto i = 0; i < prim.size(); i++) {
+      m.prims[i] = primitive(cast<dict>(prim[i]));
+    }
+    return m;
+  }
 };
 
 int main() try {
@@ -180,17 +197,7 @@ int main() try {
   auto & nodes = cast<array>(root["nodes"]);
   for (auto & n : nodes) {
     auto & nd = cast<dict>(n);
-    auto mesh = cast<number>(nd["mesh"]).integer();
-    putln("node mesh: ", mesh);
-  }
-
-  auto & meshes = cast<array>(root["meshes"]);
-  for (auto & m : meshes) {
-    auto & md = cast<dict>(m);
-    auto & prim = cast<array>(md["primitives"]);
-    for (auto & p : prim) {
-      auto prim = meta.primitive(cast<dict>(p));
-    }
+    auto m = meta.mesh(cast<number>(nd["mesh"]).integer());
   }
 } catch (...) {
   return 42;
