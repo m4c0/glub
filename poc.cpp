@@ -139,6 +139,30 @@ public:
     if (a.ctype != ct) throw invalid_parameter {};
     return a;
   }
+
+  [[nodiscard]] ::primitive primitive(const jason::ast::nodes::dict & pd) {
+    using namespace jason::ast::nodes;
+
+    if (pd.has_key("topology")) throw invalid_parameter {};
+
+    ::primitive prim {};
+
+    auto & attr = cast<dict>(pd["attributes"]);
+    for (auto &[k, v]: attr) {
+      auto vv = cast<number>(v).integer();
+      if      (*k == "POSITION")   prim.position = accessor(vv, type::VEC3, comp_type::FLOAT);
+      else if (*k == "NORMAL")     prim.normal   = accessor(vv, type::VEC3, comp_type::FLOAT);
+      else if (*k == "TEXCOORD_0") prim.uv0      = accessor(vv, type::VEC2, comp_type::FLOAT);
+      else throw invalid_parameter {};
+    }
+
+    if (pd.has_key("indices")) {
+      auto ind = cast<number>(pd["indices"]).integer();
+      prim.indices = accessor(ind, type::SCALAR, comp_type::USHORT);
+    }
+
+    return prim;
+  }
 };
 
 int main() try {
@@ -162,29 +186,10 @@ int main() try {
 
   auto & meshes = cast<array>(root["meshes"]);
   for (auto & m : meshes) {
-    putln("mesh:");
     auto & md = cast<dict>(m);
     auto & prim = cast<array>(md["primitives"]);
     for (auto & p : prim) {
-      auto & pd = cast<dict>(p);
-
-      if (pd.has_key("topology")) throw invalid_parameter {};
-
-      primitive prim {};
-
-      auto & attr = cast<dict>(pd["attributes"]);
-      for (auto &[k, v]: attr) {
-        auto vv = cast<number>(v).integer();
-        if      (*k == "POSITION")   prim.position = meta.accessor(vv, type::VEC3, comp_type::FLOAT);
-        else if (*k == "NORMAL")     prim.normal   = meta.accessor(vv, type::VEC3, comp_type::FLOAT);
-        else if (*k == "TEXCOORD_0") prim.uv0      = meta.accessor(vv, type::VEC2, comp_type::FLOAT);
-        else throw invalid_parameter {};
-      }
-
-      if (pd.has_key("indices")) {
-        auto ind = cast<number>(pd["indices"]).integer();
-        prim.indices = meta.accessor(ind, type::SCALAR, comp_type::USHORT);
-      }
+      auto prim = meta.primitive(cast<dict>(p));
     }
   }
 } catch (...) {
