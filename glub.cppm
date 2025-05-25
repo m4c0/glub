@@ -107,6 +107,11 @@ export namespace glub {
       using namespace jason::ast::nodes;
       return cast<dict>(m_json);
     }
+
+    auto & buffer(unsigned id) const {
+      if (id != 0) throw unsupported_feature { "Multiple buffers" };
+      return m_buf;
+    }
   
     auto buffer_view(unsigned id) const {
       using namespace jason::ast::nodes;
