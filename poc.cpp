@@ -69,7 +69,7 @@ class metadata {
  
 public:
   explicit metadata(const char * filename) {
-    auto f = file::open_for_reading("example.glb");
+    auto f = file::open_for_reading(filename);
     if (f.read_u32() != 'FTlg') throw invalid_magic {};
     if (f.read_u32() != 2) throw invalid_version {};
     f.read_u32(); // Length of whole file (TODO: validate)
