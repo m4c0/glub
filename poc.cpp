@@ -57,7 +57,7 @@ struct primitive {
 };
 
 struct mesh {
-  hai::array<float> weights {};
+  // hai::array<float> weights {};
   hai::array<primitive> prims;
 };
 
@@ -183,11 +183,13 @@ public:
     }
 
     if (md.has_key("weights")) {
-      auto & ws = cast<array>(md["weights"]);
-      m.weights.set_capacity(ws.size());
-      for (auto i = 0; i < ws.size(); i++) {
-        m.weights[i] = cast<number>(ws[i]).real();
-      }
+      throw invalid_parameter {};
+      // TODO: use this snippet and match against node's own array
+      // auto & ws = cast<array>(md["weights"]);
+      // m.weights.set_capacity(ws.size());
+      // for (auto i = 0; i < ws.size(); i++) {
+      //   m.weights[i] = cast<number>(ws[i]).real();
+      // }
     }
 
     return m;
@@ -239,7 +241,7 @@ static void dump_node(const metadata & meta, int idx, int indent = 0) {
   if (nd.has_key("mesh")) {
     auto m = meta.mesh(cast<number>(nd["mesh"]).integer());
     putf("%*s", indent, "");
-    putln("mesh with ", m.prims.size(), " primitives, ", m.weights.size(), " weights");
+    putln("mesh with ", m.prims.size(), " primitives");
   }
   if (nd.has_key("children")) {
     putf("%*s", indent, "");
