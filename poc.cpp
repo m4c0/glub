@@ -157,6 +157,8 @@ public:
       if      (*k == "POSITION")   prim.position = accessor(vv, type::VEC3, comp_type::FLOAT);
       else if (*k == "NORMAL")     prim.normal   = accessor(vv, type::VEC3, comp_type::FLOAT);
       else if (*k == "TEXCOORD_0") prim.uv0      = accessor(vv, type::VEC2, comp_type::FLOAT);
+      else if (*k == "JOINTS_0")   errln("TODO: support for joints");
+      else if (*k == "WEIGHTS_0")  errln("TODO: support for weights");
       else throw invalid_parameter {};
     }
 
