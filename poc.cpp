@@ -199,6 +199,10 @@ public:
 static void dump_node(const metadata & meta, int idx, int indent = 0) {
   using namespace jason::ast::nodes;
 
+  putln();
+  putf("%*s", indent, "");
+  putln("node id ", idx);
+
   auto & nodes = cast<array>(meta.root()["nodes"]);
   auto & nd = cast<dict>(nodes[idx]);
   if (nd.has_key("name")) {
@@ -260,7 +264,6 @@ int main() try {
 
   putln("root keys:");
   for (auto &[k, _]: root) putln("- ", k);
-  putln();
 
   auto sid = cast<number>(root["scene"]).integer();
   auto & scenes = cast<array>(root["scenes"]);
