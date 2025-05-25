@@ -208,6 +208,7 @@ static void dump_node(const metadata & meta, int idx, int indent = 0) {
   if (nd.has_key("rotation"))    { putf("%*s", indent, ""); putln("has rotation");    }
   if (nd.has_key("scale"))       { putf("%*s", indent, ""); putln("has scale");       }
   if (nd.has_key("translation")) { putf("%*s", indent, ""); putln("has translation"); }
+  if (nd.has_key("weights"))     { putf("%*s", indent, ""); putln("has weights");     }
 
   if (nd.has_key("skin")) {
     putf("%*s", indent, "");
