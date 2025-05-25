@@ -193,6 +193,10 @@ static void dump_node(const metadata & meta, int idx, int indent = 0) {
     putf("%*s", indent, "");
     putln("node: ", cast<string>(nd["name"]).str());
   }
+  if (nd.has_key("skin")) {
+    putf("%*s", indent, "");
+    putln("skin: ", cast<number>(nd["skin"]).integer());
+  }
   if (nd.has_key("mesh")) {
     auto m = meta.mesh(cast<number>(nd["mesh"]).integer());
     putf("%*s", indent, "");
