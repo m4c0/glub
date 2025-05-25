@@ -255,6 +255,10 @@ int main() try {
   using namespace jason::ast::nodes;
   auto & root = meta.root();
 
+  putln("root keys:");
+  for (auto &[k, _]: root) putln("- ", k);
+  putln();
+
   auto sid = cast<number>(root["scene"]).integer();
   auto & scenes = cast<array>(root["scenes"]);
   auto & scene = cast<dict>(scenes[sid]);
