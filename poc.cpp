@@ -198,6 +198,13 @@ static void dump_node(const metadata & meta, int idx, int indent = 0) {
     putf("%*s", indent, "");
     putln("mesh with ", m.prims.size(), " primitives");
   }
+  if (nd.has_key("children")) {
+    putf("%*s", indent, "");
+    putln("children:");
+    for (auto & node_idx : cast<array>(nd["children"])) {
+      dump_node(meta, cast<number>(node_idx).integer(), indent + 2);
+    }
+  }
 }
 
 int main() try {
