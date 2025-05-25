@@ -197,7 +197,12 @@ int main() try {
   auto & nodes = cast<array>(root["nodes"]);
   for (auto & n : nodes) {
     auto & nd = cast<dict>(n);
-    auto m = meta.mesh(cast<number>(nd["mesh"]).integer());
+    if (nd.has_key("name")) {
+      putln("node: ", cast<string>(nd["name"]).str());
+    }
+    if (nd.has_key("mesh")) {
+      auto m = meta.mesh(cast<number>(nd["mesh"]).integer());
+    }
   }
 } catch (...) {
   return 42;
