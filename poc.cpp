@@ -195,7 +195,23 @@ static void dump_node(const metadata & meta, int idx, int indent = 0) {
   }
   if (nd.has_key("skin")) {
     putf("%*s", indent, "");
-    putln("skin: ", cast<number>(nd["skin"]).integer());
+    auto sid = cast<number>(nd["skin"]).integer();
+    auto & skins = cast<array>(meta.root()["skins"]);
+    auto & skin = cast<dict>(skins[sid]);
+
+    auto & joints = cast<array>(skin["joints"]);
+    put("skin: ", sid, " joints: ", joints.size());
+
+    if (skin.has_key("skeleton")) {
+      auto sc = cast<number>(skin["skeleton"]).integer();
+      put(" root: ", sc);
+    }
+    if (skin.has_key("inverseBindMatrices")) {
+      auto a = meta.accessor(cast<number>(skin["inverseBindMatrices"]).integer());
+      put(" ibm count: ", a.count);
+    }
+
+    putln();
   }
   if (nd.has_key("mesh")) {
     auto m = meta.mesh(cast<number>(nd["mesh"]).integer());
