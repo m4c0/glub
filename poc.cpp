@@ -269,6 +269,51 @@ int main() try {
   for (auto & node_idx : snodes) {
     dump_node(meta, cast<number>(node_idx).integer());
   }
+
+  if (root.has_key("animations")) {
+    putln();
+    putln("animations:");
+    auto & anims = cast<array>(root["animations"]);
+    for (auto & anim: anims) {
+      auto & ad = cast<dict>(anim);
+      if (ad.has_key("name")) putln("name: ", cast<string>(ad["name"]).str());
+
+      auto & chs = cast<array>(ad["channels"]);
+      for (auto & ch : chs) {
+        auto & chd = cast<dict>(ch);
+
+        auto smp = cast<number>(chd["sampler"]).integer();
+        putln("channel sampler: ", smp);
+
+        auto & td = cast<dict>(chd["target"]);
+        auto tnidx = cast<number>(td["node"]).integer();
+        // TODO: parse path
+        auto tpath = cast<string>(td["path"]).str();
+
+        putln("target node: ", tnidx, ", path: ", tpath);
+      }
+
+      auto & smps = cast<array>(ad["samplers"]);
+      for (auto & smp : smps) {
+        auto & sd = cast<dict>(smp);
+
+        // TODO: support interpolation (linear, step, cubicspline)
+        // TODO: after interpolation, match sizes
+
+        if (sd.has_key("interpolation")) {
+          putln("TODO: support sampler interpolation - ", cast<string>(sd["interpolation"]).str());
+        }
+
+        auto tidx = cast<number>(sd["input"]).integer();
+        auto ts = meta.accessor(tidx, type::SCALAR, comp_type::FLOAT);
+
+        auto oidx = cast<number>(sd["output"]).integer();
+        auto os = meta.accessor(oidx);
+
+        putln("sampler timestamp: ", ts.count, ", outputs: ", os.count);
+      }
+    }
+  }
 } catch (...) {
   return 42;
 }
