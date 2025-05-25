@@ -184,16 +184,18 @@ public:
   }
 };
 
-static void dump_node(const metadata & meta, int idx) {
+static void dump_node(const metadata & meta, int idx, int indent = 0) {
   using namespace jason::ast::nodes;
 
   auto & nodes = cast<array>(meta.root()["nodes"]);
   auto & nd = cast<dict>(nodes[idx]);
   if (nd.has_key("name")) {
+    putf("%*s", indent, "");
     putln("node: ", cast<string>(nd["name"]).str());
   }
   if (nd.has_key("mesh")) {
     auto m = meta.mesh(cast<number>(nd["mesh"]).integer());
+    putf("%*s", indent, "");
     putln("mesh with ", m.prims.size(), " primitives");
   }
 }
