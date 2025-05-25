@@ -45,8 +45,13 @@ enum class comp_type { BYTE, UBYTE, SHORT, USHORT, UINT, FLOAT };
   return parse_comp_type(cast<number>(ad["componentType"]).integer());
 }
 
+struct buffer_view {
+  unsigned ofs;
+  unsigned len;
+};
+
 struct accessor {
-  jute::view buf_view;
+  buffer_view buf_view;
   comp_type ctype;
   type type;
   int count;
@@ -116,10 +121,10 @@ public:
       : 0;
 
     // TODO: validate stride
-    if (buf != 0) throw invalid_parameter {};
+    if (buf != 0) throw unsupported_feature { "Multiple buffers" };
     if (ofs + len > m_buf.size()) throw invalid_parameter {};
 
-    return jute::view { m_buf.begin() + ofs, len };
+    return ::buffer_view { ofs, len };
   }
 
   [[nodiscard]] ::accessor accessor(unsigned id) const {
@@ -134,8 +139,10 @@ public:
       ? cast<number>(ad["byteOffset"]).integer()
       : 0;
 
+    auto [bv_ofs, len] = buffer_view(bv);
+
     return {
-      .buf_view = buffer_view(bv).subview(ofs).after,
+      .buf_view = { bv_ofs + ofs, len - ofs },
       .ctype = parse_comp_type(ad),
       .type = parse_type(ad),
       .count = cast<number>(ad["count"]).integer(),
