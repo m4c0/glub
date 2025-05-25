@@ -194,11 +194,10 @@ int main() try {
   auto & scenes = cast<array>(root["scenes"]);
   auto & scene = cast<dict>(scenes[sid]);
   auto & snodes = cast<array>(scene["nodes"]);
-  for (auto & n : snodes) putln("scene n: ", cast<number>(n).integer());
-
-  auto & nodes = cast<array>(root["nodes"]);
-  for (auto & n : nodes) {
-    auto & nd = cast<dict>(n);
+  for (auto & node_idx : snodes) {
+    auto idx = cast<number>(node_idx).integer();
+    auto & nodes = cast<array>(root["nodes"]);
+    auto & nd = cast<dict>(nodes[idx]);
     if (nd.has_key("name")) {
       putln("node: ", cast<string>(nd["name"]).str());
     }
