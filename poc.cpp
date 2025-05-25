@@ -88,7 +88,7 @@ public:
     using namespace jason::ast::nodes;
     auto & root = cast<dict>(m_json);
     auto & buffers = cast<array>(root["buffers"]);
-    if (buffers.size() != 1) throw unsupported_format {};
+    if (buffers.size() != 1) throw unsupported_feature { "Multiple buffers" };
     auto & buffer = cast<dict>(buffers[0]);
     unsigned buf_len = cast<number>(buffer["byteLength"]).integer();
 
