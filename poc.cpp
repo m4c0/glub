@@ -203,6 +203,12 @@ static void dump_node(const metadata & meta, int idx, int indent = 0) {
     putf("%*s", indent, "");
     putln("node: ", cast<string>(nd["name"]).str());
   }
+
+  if (nd.has_key("matrix"))      { putf("%*s", indent, ""); putln("has matrix");      }
+  if (nd.has_key("rotation"))    { putf("%*s", indent, ""); putln("has rotation");    }
+  if (nd.has_key("scale"))       { putf("%*s", indent, ""); putln("has scale");       }
+  if (nd.has_key("translation")) { putf("%*s", indent, ""); putln("has translation"); }
+
   if (nd.has_key("skin")) {
     putf("%*s", indent, "");
     auto sid = cast<number>(nd["skin"]).integer();
