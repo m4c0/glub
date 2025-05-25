@@ -184,6 +184,20 @@ public:
   }
 };
 
+static void dump_node(const metadata & meta, int idx) {
+  using namespace jason::ast::nodes;
+
+  auto & nodes = cast<array>(meta.root()["nodes"]);
+  auto & nd = cast<dict>(nodes[idx]);
+  if (nd.has_key("name")) {
+    putln("node: ", cast<string>(nd["name"]).str());
+  }
+  if (nd.has_key("mesh")) {
+    auto m = meta.mesh(cast<number>(nd["mesh"]).integer());
+    putln("mesh with ", m.prims.size(), " primitives");
+  }
+}
+
 int main() try {
   metadata meta { "example.glb" };
 
@@ -195,15 +209,7 @@ int main() try {
   auto & scene = cast<dict>(scenes[sid]);
   auto & snodes = cast<array>(scene["nodes"]);
   for (auto & node_idx : snodes) {
-    auto idx = cast<number>(node_idx).integer();
-    auto & nodes = cast<array>(root["nodes"]);
-    auto & nd = cast<dict>(nodes[idx]);
-    if (nd.has_key("name")) {
-      putln("node: ", cast<string>(nd["name"]).str());
-    }
-    if (nd.has_key("mesh")) {
-      auto m = meta.mesh(cast<number>(nd["mesh"]).integer());
-    }
+    dump_node(meta, cast<number>(node_idx).integer());
   }
 } catch (...) {
   return 42;
