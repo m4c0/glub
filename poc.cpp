@@ -10,6 +10,9 @@ struct invalid_magic {};
 struct invalid_parameter {};
 struct invalid_version {};
 struct unsupported_format {};
+struct unsupported_feature {
+  const char * name;
+};
 
 enum class type { SCALAR, VEC2, VEC3, VEC4, MAT2, MAT3, MAT4 };
 [[nodiscard]] static constexpr type parse_type(jute::view str) {
@@ -148,7 +151,7 @@ public:
   [[nodiscard]] ::primitive primitive(const jason::ast::nodes::dict & pd) const {
     using namespace jason::ast::nodes;
 
-    if (pd.has_key("topology")) throw invalid_parameter {};
+    if (pd.has_key("topology")) throw unsupported_feature { "Mesh primitive topologies" };
 
     ::primitive prim {};
 
@@ -177,19 +180,11 @@ public:
     auto & md = cast<dict>(meshes[id]);
     auto & prim = cast<array>(md["primitives"]);
 
+    if (md.has_key("weights")) throw unsupported_feature { "Morphing" };
+
     ::mesh m { .prims { prim.size() } };
     for (auto i = 0; i < prim.size(); i++) {
       m.prims[i] = primitive(cast<dict>(prim[i]));
-    }
-
-    if (md.has_key("weights")) {
-      throw invalid_parameter {};
-      // TODO: use this snippet and match against node's own array
-      // auto & ws = cast<array>(md["weights"]);
-      // m.weights.set_capacity(ws.size());
-      // for (auto i = 0; i < ws.size(); i++) {
-      //   m.weights[i] = cast<number>(ws[i]).real();
-      // }
     }
 
     return m;
@@ -317,6 +312,8 @@ int main() try {
       }
     }
   }
+} catch (unsupported_feature f) {
+  errln("Unsupported feature: ", f.name);
 } catch (...) {
   return 42;
 }
