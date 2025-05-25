@@ -65,10 +65,13 @@ export namespace glub {
   };
   
   struct mesh {
-    // hai::array<float> weights {};
     hai::array<primitive> prims;
   };
   
+  struct node {
+    hai::array<node> children {};
+  };
+
   class metadata {
     hai::array<char> m_json_src;
     jason::ast::node_ptr m_json;
@@ -200,6 +203,40 @@ export namespace glub {
       }
   
       return m;
+    }
+
+    [[nodiscard]] glub::node node(unsigned idx) const {
+      using namespace jason::ast::nodes;
+
+      auto & nodes = cast<array>(root()["nodes"]);
+      auto & nd = cast<dict>(nodes[idx]);
+
+      glub::node n {};
+
+      if (nd.has_key("children")) {
+        auto & nc = cast<array>(nd["children"]);
+        n.children.set_capacity(nc.size());
+        for (auto i = 0; i < nc.size(); i++) {
+          auto ncid = cast<number>(nc[i]).integer();
+          n.children[i] = node(ncid);
+        }
+      }
+
+      return n;
+    }
+    [[nodiscard]] glub::node node() const {
+      using namespace jason::ast::nodes;
+
+      auto sid = cast<number>(root()["scene"]).integer();
+      auto & scenes = cast<array>(root()["scenes"]);
+      if (scenes.size() != 1) throw unsupported_feature { "Multiple scenes" };
+
+      auto & scene = cast<dict>(scenes[sid]);
+      auto & snodes = cast<array>(scene["nodes"]);
+      if (snodes.size() != 1) throw unsupported_feature { "Scene with multiple nodes" };
+
+      auto nid = cast<number>(snodes[0]).integer();
+      return node(nid);
     }
   };
 }
