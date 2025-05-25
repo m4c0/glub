@@ -212,6 +212,10 @@ static void dump_node(const metadata & meta, int idx, int indent = 0) {
     }
 
     putln();
+
+    for (auto & jidx : joints) {
+      dump_node(meta, jidx, indent + 2);
+    }
   }
   if (nd.has_key("mesh")) {
     auto m = meta.mesh(cast<number>(nd["mesh"]).integer());
