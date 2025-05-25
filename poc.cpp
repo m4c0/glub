@@ -99,7 +99,7 @@ public:
     return cast<dict>(m_json);
   }
 
-  auto buffer_view(unsigned id) {
+  auto buffer_view(unsigned id) const {
     using namespace jason::ast::nodes;
 
     auto & bv = cast<array>(root()["bufferViews"]);
@@ -118,7 +118,7 @@ public:
     return jute::view { m_buf.begin() + ofs, len };
   }
 
-  [[nodiscard]] ::accessor accessor(unsigned id) {
+  [[nodiscard]] ::accessor accessor(unsigned id) const {
     using namespace jason::ast::nodes;
 
     auto & a = cast<array>(root()["accessors"]);
@@ -137,14 +137,14 @@ public:
       .count = cast<number>(ad["count"]).integer(),
     };
   }
-  [[nodiscard]] ::accessor accessor(unsigned id, type t, comp_type ct) {
+  [[nodiscard]] ::accessor accessor(unsigned id, type t, comp_type ct) const {
     auto a = accessor(id);
     if (a.type != t) throw invalid_parameter {};
     if (a.ctype != ct) throw invalid_parameter {};
     return a;
   }
 
-  [[nodiscard]] ::primitive primitive(const jason::ast::nodes::dict & pd) {
+  [[nodiscard]] ::primitive primitive(const jason::ast::nodes::dict & pd) const {
     using namespace jason::ast::nodes;
 
     if (pd.has_key("topology")) throw invalid_parameter {};
@@ -169,7 +169,7 @@ public:
 
     return prim;
   }
-  [[nodiscard]] ::mesh mesh(unsigned id) {
+  [[nodiscard]] ::mesh mesh(unsigned id) const {
     using namespace jason::ast::nodes;
 
     auto & meshes = cast<array>(root()["meshes"]);
