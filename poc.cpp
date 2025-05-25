@@ -207,13 +207,15 @@ static void dump_node(const metadata & meta, int idx, int indent = 0) {
       put(" root: ", sc);
     }
     if (skin.has_key("inverseBindMatrices")) {
-      auto a = meta.accessor(cast<number>(skin["inverseBindMatrices"]).integer());
+      auto ibm = cast<number>(skin["inverseBindMatrices"]).integer();
+      auto a = meta.accessor(ibm, type::MAT4, comp_type::FLOAT);
       put(" ibm count: ", a.count);
     }
 
     putln();
 
-    for (auto & jidx : joints) {
+    for (auto & j : joints) {
+      auto jidx = cast<number>(j).integer();
       dump_node(meta, jidx, indent + 2);
     }
   }
