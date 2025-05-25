@@ -252,7 +252,7 @@ static void dump_node(const metadata & meta, int idx, int indent = 0) {
 }
 
 int main() try {
-  metadata meta { "example.glb" };
+  metadata meta { "models/BoxAnimated.glb" };
 
   using namespace jason::ast::nodes;
   auto & root = meta.root();
