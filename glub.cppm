@@ -51,7 +51,8 @@ export namespace glub {
   };
   
   struct accessor {
-    buffer_view buf_view;
+    int buffer_view;
+    int offset;
     comp_type ctype;
     type type;
     int count;
@@ -155,10 +156,9 @@ export namespace glub {
         ? cast<number>(ad["byteOffset"]).integer()
         : 0;
   
-      auto [bv_ofs, len] = buffer_view(bv);
-  
       return {
-        .buf_view = { bv_ofs + ofs, len - ofs },
+        .buffer_view = bv,
+        .offset = ofs,
         .ctype = parse_comp_type(ad),
         .type = parse_type(ad),
         .count = cast<number>(ad["count"]).integer(),
