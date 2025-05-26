@@ -3,6 +3,7 @@
 #pragma leco add_shader "poc-vulkan.vert"
 
 import glub;
+import hai;
 import vapp;
 import voo;
 
@@ -24,6 +25,13 @@ struct i : public vapp {
 
       glub::metadata meta { "models/BoxAnimated.glb" };
       auto mem = load_buffer(pd, meta);
+
+      auto bvs = meta.buffer_views();
+      hai::array<vee::buffer> bufs { bvs.size() };
+      for (auto i = 0; i < bvs.size(); i++) {
+        auto [ofs, len] = bvs[i];
+        bufs[i] = vee::create_buffer(len, vee::buffer_usage::vertex_buffer);
+      }
 
       auto pl = vee::create_pipeline_layout();
       auto ppl = vee::create_graphics_pipeline({

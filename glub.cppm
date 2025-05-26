@@ -134,6 +134,14 @@ export namespace glub {
   
       return glub::buffer_view { ofs, len };
     }
+    auto buffer_views() const {
+      using namespace jason::ast::nodes;
+
+      auto sz = cast<array>(root()["bufferViews"]).size();
+      hai::array<glub::buffer_view> res { sz };
+      for (auto i = 0; i < sz; i++) res[i] = buffer_view(i);
+      return res;
+    }
   
     [[nodiscard]] glub::accessor accessor(unsigned id) const {
       using namespace jason::ast::nodes;
