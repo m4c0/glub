@@ -70,6 +70,7 @@ export namespace glub {
   };
   
   struct node {
+    int mesh;
     hai::array<node> children {};
   };
 
@@ -220,6 +221,10 @@ export namespace glub {
       auto & nd = cast<dict>(nodes[idx]);
 
       glub::node n {};
+
+      n.mesh = nd.has_key("mesh")
+        ? cast<number>(nd["mesh"]).integer()
+        : -1;
 
       if (nd.has_key("children")) {
         auto & nc = cast<array>(nd["children"]);
