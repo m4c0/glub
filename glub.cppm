@@ -74,6 +74,10 @@ export namespace glub {
     hai::array<node> children {};
   };
 
+  struct scene {
+    hai::array<node> nodes {};
+  };
+
   class metadata {
     hai::array<char> m_json_src;
     jason::ast::node_ptr m_json;
@@ -237,7 +241,8 @@ export namespace glub {
 
       return n;
     }
-    [[nodiscard]] glub::node node() const {
+
+    [[nodiscard]] glub::scene main_scene() const {
       using namespace jason::ast::nodes;
 
       auto sid = cast<number>(root()["scene"]).integer();
@@ -246,11 +251,20 @@ export namespace glub {
 
       auto & scene = cast<dict>(scenes[sid]);
       auto & snodes = cast<array>(scene["nodes"]);
-      if (snodes.size() != 1) throw unsupported_feature { "Scene with multiple nodes" };
-
-      auto nid = cast<number>(snodes[0]).integer();
-      return node(nid);
+      glub::scene res { .nodes { snodes.size() } };
+      for (auto i = 0; i < snodes.size(); i++) {
+        res.nodes[i] = node(cast<number>(snodes[i]).integer());
+      }
+      return res;
     }
   };
+
+  void visit_meshes(const node & n, auto && fn) {
+    if (n.mesh != -1) fn(n.mesh);
+    for (auto & c : n.children) visit_meshes(c, fn);
+  }
+  void visit_meshes(const scene & s, auto && fn) {
+    for (auto & c : s.nodes) visit_meshes(c, fn);
+  }
 }
 
