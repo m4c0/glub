@@ -1,4 +1,6 @@
 #pragma leco app
+#pragma leco add_shader "poc-vulkan.frag"
+#pragma leco add_shader "poc-vulkan.vert"
 
 import glub;
 import vapp;
@@ -22,6 +24,23 @@ struct i : public vapp {
 
       glub::metadata meta { "models/BoxAnimated.glb" };
       auto mem = load_buffer(pd, meta);
+
+      auto pl = vee::create_pipeline_layout();
+      auto ppl = vee::create_graphics_pipeline({
+        .pipeline_layout = *pl,
+        .render_pass = dq.render_pass(),
+        .extent = sw.extent(),
+        .shaders {
+          voo::shader("poc-vulkan.vert.spv").pipeline_vert_stage(),
+          voo::shader("poc-vulkan.frag.spv").pipeline_frag_stage(),
+        },
+        .bindings {
+          vee::vertex_input_bind(1), // TODO: stride
+        },
+        .attributes {
+          vee::vertex_attribute_float(0, 0), // TODO: offset
+        },
+      });
 
       extent_loop(dq.queue(), sw, [&] {
         sw.queue_one_time_submit(dq.queue(), [&](auto pcb) {
