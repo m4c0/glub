@@ -15,15 +15,19 @@ static auto load_buffer(const vee::physical_device pd, const glub::metadata & me
   return mem;
 }
 
-static void run(voo::device_and_queue & dq, voo::swapchain_and_stuff & sw) {
-  auto pd = dq.physical_device();
-
-  glub::metadata meta { "models/BoxAnimated.glb" };
-  auto mem = load_buffer(pd, meta);
-}
-
 struct i : public vapp {
   void run() override {
-    main_loop("poc", &::run);
+    main_loop("poc", [&](auto & dq, auto & sw) {
+      auto pd = dq.physical_device();
+
+      glub::metadata meta { "models/BoxAnimated.glb" };
+      auto mem = load_buffer(pd, meta);
+
+      extent_loop(dq.queue(), sw, [&] {
+        sw.queue_one_time_submit(dq.queue(), [&](auto pcb) {
+          auto scb = sw.cmd_render_pass({ *pcb });
+        });
+      });
+    });
   }
 } i;
