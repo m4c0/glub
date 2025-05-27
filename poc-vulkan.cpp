@@ -85,7 +85,7 @@ struct i : public vapp {
               buf = bufs[prim.indices.buffer_view].buffer();
               ofs = prim.indices.offset;
               vee::cmd_bind_index_buffer_u16(*scb, buf, ofs);
-              vee::cmd_draw(*scb, prim.indices.count);
+              vee::cmd_draw_indexed(*scb, prim.indices.count);
             }
           });
         });
