@@ -14,15 +14,13 @@ struct upc {
   float aspect;
 };
 
-static auto load_buffer(const vee::physical_device pd, const glub::metadata & meta) {
+static auto load_buffer(const vee::device_memory::type mem, const glub::metadata & meta, int offset, int len) {
   const auto & data = meta.buffer(0);
 
-  auto mem = vee::create_host_memory(pd, data.size());
-  auto m = voo::memiter<char>(*mem);
-  for (auto i = 0; i < data.size(); i++) {
-    m[i] = data[i];
+  auto m = voo::memiter<char>(mem);
+  for (auto i = 0; i < len; i++) {
+    m[i] = data[i + offset];
   }
-  return mem;
 }
 
 struct i : public vapp {
@@ -31,14 +29,13 @@ struct i : public vapp {
       auto pd = dq.physical_device();
 
       glub::metadata meta { "models/BoxAnimated.glb" };
-      auto mem = load_buffer(pd, meta);
 
       auto bvs = meta.buffer_views();
-      hai::array<vee::buffer> bufs { bvs.size() };
+      hai::array<voo::host_buffer> bufs { bvs.size() };
       for (auto i = 0; i < bvs.size(); i++) {
         auto [ofs, len] = bvs[i];
-        bufs[i] = vee::create_buffer(len, vee::buffer_usage::vertex_buffer, vee::buffer_usage::index_buffer);
-        vee::bind_buffer_memory(*bufs[i], *mem, ofs);
+        bufs[i] = voo::host_buffer { pd, len, vee::buffer_usage::vertex_buffer, vee::buffer_usage::index_buffer };
+        load_buffer(bufs[i].memory(), meta, ofs, len);
       }
 
       auto pl = vee::create_pipeline_layout(
@@ -81,11 +78,11 @@ struct i : public vapp {
               if (!prim.position.count) throw 0; // TODO errors
               if (!prim.indices.count) throw 0; // TODO errors
 
-              auto buf = *bufs[prim.position.buffer_view];
+              auto buf = bufs[prim.position.buffer_view].buffer();
               auto ofs = prim.position.offset;
               vee::cmd_bind_vertex_buffers(*scb, 0, buf, ofs);
 
-              buf = *bufs[prim.indices.buffer_view];
+              buf = bufs[prim.indices.buffer_view].buffer();
               ofs = prim.indices.offset;
               vee::cmd_bind_index_buffer_u16(*scb, buf, ofs);
               vee::cmd_draw(*scb, prim.indices.count);
