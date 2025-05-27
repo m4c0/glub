@@ -5,8 +5,14 @@
 import glub;
 import hai;
 import silog;
+import sitime;
 import vapp;
 import voo;
+
+struct upc {
+  float time;
+  float aspect;
+};
 
 static auto load_buffer(const vee::physical_device pd, const glub::metadata & meta) {
   const auto & data = meta.buffer(0);
@@ -35,7 +41,9 @@ struct i : public vapp {
         vee::bind_buffer_memory(*bufs[i], *mem, ofs);
       }
 
-      auto pl = vee::create_pipeline_layout();
+      auto pl = vee::create_pipeline_layout(
+        vee::vertex_push_constant_range<upc>()
+      );
       auto ppl = vee::create_graphics_pipeline({
         .pipeline_layout = *pl,
         .render_pass = dq.render_pass(),
@@ -53,12 +61,19 @@ struct i : public vapp {
       });
 
       auto scene = meta.main_scene();
+      sitime::stopwatch t {};
 
       extent_loop(dq.queue(), sw, [&] {
+        upc pc {
+          .time = t.millis() / 1000.0f,
+          .aspect = sw.aspect(),
+        };
+
         sw.queue_one_time_submit(dq.queue(), [&](auto pcb) {
           auto scb = sw.cmd_render_pass({ *pcb });
 
           vee::cmd_bind_gr_pipeline(*scb, *ppl);
+          vee::cmd_push_vertex_constants(*scb, *pl, &pc);
           glub::visit_meshes(scene, [&](auto m) {
             auto mesh = meta.mesh(m);
 
