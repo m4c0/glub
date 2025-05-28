@@ -82,6 +82,16 @@ export namespace glub {
     type type;
     int count;
   };
+
+  struct channel {
+    int node;
+    path path;
+    interp interp = interp::LINEAR;
+    hai::array<float> timestamps;
+  };
+  struct animation {
+    hai::array<channel> channels;
+  };
   
   struct primitive {
     accessor position;
@@ -174,6 +184,50 @@ export namespace glub {
       return res;
     }
   
+    auto animations() const {
+      using namespace jason::ast::nodes;
+
+      auto & anims = cast<array>(root()["animations"]);
+      hai::array<animation> res { anims.size() };
+      for (auto i = 0; i < anims.size(); i++) {
+        auto & ad = cast<dict>(anims[i]);
+        auto & smps = cast<array>(ad["samplers"]);
+        auto & chs = cast<array>(ad["channels"]);
+        for (auto j = 0; j < chs.size(); j++) {
+          auto & chd = cast<dict>(chs[j]);
+
+          auto & td = cast<dict>(chd["target"]);
+
+          auto smp = cast<number>(chd["sampler"]).integer();
+          auto & sd = cast<dict>(smps[smp]);
+
+          auto tidx = cast<number>(sd["input"]).integer();
+          auto ts = accessor(tidx, type::SCALAR, comp_type::FLOAT);
+
+          auto oidx = cast<number>(sd["output"]).integer();
+          auto os = accessor(oidx);
+          if (ts.count != os.count) throw invalid_parameter {};
+
+          channel c {
+            .node = cast<number>(td["node"]).integer(),
+            .path = parse_path(td),
+            .timestamps { static_cast<unsigned>(ts.count) },
+          };
+
+          if (sd.has_key("interpolation")) c.interp = parse_interp(sd);
+          if (c.interp != interp::LINEAR) throw unsupported_feature { "Non-linear interpolation" };
+
+          auto & b = buffer(0);
+          auto bv = buffer_view(ts.buffer_view);
+          auto tsp = reinterpret_cast<const float *>(&b[bv.ofs + ts.offset]);
+          for (auto i = 0; i < ts.count; i++) c.timestamps[i] = tsp[i];
+
+          res[i].channels[j] = traits::move(c);
+        }
+      }
+      return res;
+    }
+
     [[nodiscard]] glub::accessor accessor(unsigned id) const {
       using namespace jason::ast::nodes;
   
