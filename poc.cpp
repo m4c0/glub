@@ -8,6 +8,18 @@ import print;
 
 using namespace glub;
 
+enum class interp { LINEAR, STEP, CUBICSPLINE };
+[[nodiscard]] constexpr interp parse_interp(jute::view str) {
+  if (str == "LINEAR")      return interp::LINEAR;
+  if (str == "STEP")        return interp::STEP;
+  if (str == "CUBICSPLINE") return interp::CUBICSPLINE;
+  throw invalid_parameter {};
+}
+[[nodiscard]] auto parse_interp(const jason::ast::nodes::dict & d) {
+  using namespace jason::ast::nodes;
+  return parse_interp(*cast<string>(d["interpolation"]).str());
+}
+
 static void dump_node(const metadata & meta, int idx, int indent = 0) {
   using namespace jason::ast::nodes;
 
@@ -116,7 +128,9 @@ int main() try {
         // TODO: after interpolation, match sizes
 
         if (sd.has_key("interpolation")) {
-          putln("TODO: support sampler interpolation - ", cast<string>(sd["interpolation"]).str());
+          auto ip = parse_interp(sd);
+          if (ip != interp::LINEAR) throw unsupported_feature { "Non-linear interpolation" };
+          putln("linear interpolation");
         }
 
         auto tidx = cast<number>(sd["input"]).integer();
