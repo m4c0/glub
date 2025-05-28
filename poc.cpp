@@ -93,6 +93,7 @@ int main() try {
       auto & ad = cast<dict>(anim);
       if (ad.has_key("name")) putln("name: ", cast<string>(ad["name"]).str());
 
+      auto & smps = cast<array>(ad["samplers"]);
       auto & chs = cast<array>(ad["channels"]);
       for (auto & ch : chs) {
         auto & chd = cast<dict>(ch);
@@ -101,40 +102,37 @@ int main() try {
         putln("channel sampler: ", smp);
 
         auto & td = cast<dict>(chd["target"]);
-        auto tnidx = cast<number>(td["node"]).integer();
-        // TODO: parse path
-        auto tpath = cast<string>(td["path"]).str();
-
-        putln("target node: ", tnidx, ", path: ", tpath);
-      }
-
-      auto & smps = cast<array>(ad["samplers"]);
-      for (auto & smp : smps) {
-        auto & sd = cast<dict>(smp);
-
-        if (sd.has_key("interpolation")) {
-          auto ip = parse_interp(sd);
-          if (ip != interp::LINEAR) throw unsupported_feature { "Non-linear interpolation" };
-          putln("linear interpolation");
-        }
+        auto & sd = cast<dict>(smps[smp]);
 
         auto tidx = cast<number>(sd["input"]).integer();
         auto ts = meta.accessor(tidx, type::SCALAR, comp_type::FLOAT);
 
         auto oidx = cast<number>(sd["output"]).integer();
         auto os = meta.accessor(oidx);
-
         if (ts.count != os.count) throw invalid_parameter {};
 
-        putln("sampler");
+        struct channel {
+          int node;
+          path path;
+          interp interp = interp::LINEAR;
+          hai::array<float> timestamps;
+        };
+        channel c {
+          .node = cast<number>(td["node"]).integer(),
+          .path = parse_path(td),
+          .timestamps { static_cast<unsigned>(ts.count) },
+        };
+
+        if (sd.has_key("interpolation")) c.interp = parse_interp(sd);
+        if (c.interp != interp::LINEAR) throw unsupported_feature { "Non-linear interpolation" };
 
         auto & b = meta.buffer(0);
         auto bv = meta.buffer_view(ts.buffer_view);
         auto tsp = reinterpret_cast<const float *>(&b[bv.ofs + ts.offset]);
-        for (auto i = 0; i < ts.count; i++) {
-          putln("  timestamp: ", tsp[i]);
-        }
-        putln("sampler outputs: ", os.count);
+        for (auto i = 0; i < ts.count; i++) c.timestamps[i] = tsp[i];
+
+        putln("target node: ", c.node);
+        for (auto t : c.timestamps) putln("  timestamp: ", t);
       }
     }
   }
