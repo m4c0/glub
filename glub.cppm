@@ -45,6 +45,18 @@ export namespace glub {
     return parse_comp_type(cast<number>(ad["componentType"]).integer());
   }
   
+  enum class interp { LINEAR, STEP, CUBICSPLINE };
+  [[nodiscard]] constexpr interp parse_interp(jute::view str) {
+    if (str == "LINEAR")      return interp::LINEAR;
+    if (str == "STEP")        return interp::STEP;
+    if (str == "CUBICSPLINE") return interp::CUBICSPLINE;
+    throw invalid_parameter {};
+  }
+  [[nodiscard]] auto parse_interp(const jason::ast::nodes::dict & d) {
+    using namespace jason::ast::nodes;
+    return parse_interp(*cast<string>(d["interpolation"]).str());
+  }
+
   struct buffer_view {
     unsigned ofs;
     unsigned len;
