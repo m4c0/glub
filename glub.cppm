@@ -57,6 +57,19 @@ export namespace glub {
     return parse_interp(*cast<string>(d["interpolation"]).str());
   }
 
+  enum class path { WEIGHTS, TRANSLATION, ROTATION, SCALE };
+  [[nodiscard]] constexpr path parse_path(jute::view str) {
+    if (str == "weights")     return path::WEIGHTS;
+    if (str == "translation") return path::TRANSLATION;
+    if (str == "rotation")    return path::ROTATION;
+    if (str == "scale")       return path::SCALE;
+    throw invalid_parameter {};
+  }
+  [[nodiscard]] auto parse_path(const jason::ast::nodes::dict & d) {
+    using namespace jason::ast::nodes;
+    return parse_path(*cast<string>(d["path"]).str());
+  }
+
   struct buffer_view {
     unsigned ofs;
     unsigned len;
