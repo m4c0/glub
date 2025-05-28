@@ -139,7 +139,17 @@ int main() try {
         auto oidx = cast<number>(sd["output"]).integer();
         auto os = meta.accessor(oidx);
 
-        putln("sampler timestamp: ", ts.count, ", outputs: ", os.count);
+        if (ts.count != os.count) throw invalid_parameter {};
+
+        putln("sampler");
+
+        auto & b = meta.buffer(0);
+        auto bv = meta.buffer_view(ts.buffer_view);
+        auto tsp = reinterpret_cast<const float *>(&b[bv.ofs + ts.offset]);
+        for (auto i = 0; i < ts.count; i++) {
+          putln("  timestamp: ", tsp[i]);
+        }
+        putln("sampler outputs: ", os.count);
       }
     }
   }
