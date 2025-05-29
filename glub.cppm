@@ -70,6 +70,15 @@ export namespace glub {
     return parse_path(*cast<string>(d["path"]).str());
   }
 
+  [[nodiscard]] constexpr type type_of(path p) {
+    switch (p) {
+      case path::WEIGHTS:     return type::SCALAR;
+      case path::TRANSLATION: return type::VEC3;
+      case path::ROTATION:    return type::VEC4;
+      case path::SCALE:       return type::VEC3;
+    }
+  }
+
   struct buffer_view {
     unsigned ofs;
     unsigned len;
@@ -200,22 +209,21 @@ export namespace glub {
           auto & chd = cast<dict>(chs[j]);
 
           auto & td = cast<dict>(chd["target"]);
+          channel c {
+            .node = cast<number>(td["node"]).integer(),
+            .path = parse_path(td),
+          };
 
           auto smp = cast<number>(chd["sampler"]).integer();
           auto & sd = cast<dict>(smps[smp]);
 
           auto tidx = cast<number>(sd["input"]).integer();
           auto ts = accessor(tidx, type::SCALAR, comp_type::FLOAT);
+          c.samples.set_capacity(ts.count);
 
           auto oidx = cast<number>(sd["output"]).integer();
-          auto os = accessor(oidx);
+          auto os = accessor(oidx, type_of(c.path), comp_type::FLOAT);
           if (ts.count != os.count) throw invalid_parameter {};
-
-          channel c {
-            .node = cast<number>(td["node"]).integer(),
-            .path = parse_path(td),
-            .timestamps { static_cast<unsigned>(ts.count) },
-          };
 
           if (sd.has_key("interpolation")) c.interp = parse_interp(sd);
           if (c.interp != interp::LINEAR) throw unsupported_feature { "Non-linear interpolation" };
