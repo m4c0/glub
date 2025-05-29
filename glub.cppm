@@ -87,7 +87,7 @@ export namespace glub {
     int node;
     path path;
     interp interp = interp::LINEAR;
-    hai::array<float> timestamps;
+    hai::array<float> timestamps {};
   };
   struct animation {
     hai::array<channel> channels;
@@ -184,8 +184,10 @@ export namespace glub {
       return res;
     }
   
-    auto animations() const {
+    hai::array<animation> animations() const {
       using namespace jason::ast::nodes;
+
+      if (!root().has_key("animations")) return {};
 
       auto & anims = cast<array>(root()["animations"]);
       hai::array<animation> res { anims.size() };
@@ -193,6 +195,7 @@ export namespace glub {
         auto & ad = cast<dict>(anims[i]);
         auto & smps = cast<array>(ad["samplers"]);
         auto & chs = cast<array>(ad["channels"]);
+        res[i].channels.set_capacity(chs.size());
         for (auto j = 0; j < chs.size(); j++) {
           auto & chd = cast<dict>(chs[j]);
 
