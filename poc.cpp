@@ -89,7 +89,16 @@ int main() try {
   for (auto & a : meta.animations()) {
     putln("animation");
     for (auto & c : a.channels) {
-      putln("  channel node: ", c.node, " timestamps: ", c.timestamps.size());
+      put("  channel for node: ", c.node, " on: ");
+      switch (c.path) {
+        case path::WEIGHTS:     putln("weight");      break;
+        case path::TRANSLATION: putln("translation"); break;
+        case path::ROTATION:    putln("rotation");    break;
+        case path::SCALE:       putln("scale");       break;
+      }
+      for (auto [v, t] : c.samples) {
+        putfn("  - %f %f %f %f @%f", v.x, v.y, v.x, v.x, t);
+      }
     }
   }
 } catch (unsupported_feature f) {

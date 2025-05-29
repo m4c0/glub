@@ -1,4 +1,5 @@
 export module glub;
+import dotz;
 import file;
 import jason;
 import jute;
@@ -72,10 +73,18 @@ export namespace glub {
 
   [[nodiscard]] constexpr type type_of(path p) {
     switch (p) {
-      case path::WEIGHTS:     return type::SCALAR;
+      case path::WEIGHTS:     throw unsupported_feature { "animation of weights" };
       case path::TRANSLATION: return type::VEC3;
       case path::ROTATION:    return type::VEC4;
       case path::SCALE:       return type::VEC3;
+    }
+  }
+  [[nodiscard]] constexpr dotz::vec4 take_vec4(const float *& v, type t) {
+    switch (t) {
+      case type::SCALAR: return { *v++, 0.0f, 0.0f, 0.0f };
+      case type::VEC3:   return { *v++, *v++, *v++, 0.0f };
+      case type::VEC4:   return { *v++, *v++, *v++, *v++ };
+      default: throw unsupported_feature { "convertion to vec4" };
     }
   }
 
@@ -92,11 +101,15 @@ export namespace glub {
     int count;
   };
 
+  struct sample {
+    dotz::vec4 value;
+    float time;
+  };
   struct channel {
     int node;
     path path;
     interp interp = interp::LINEAR;
-    hai::array<float> timestamps {};
+    hai::array<sample> samples {};
   };
   struct animation {
     hai::array<channel> channels;
@@ -213,6 +226,7 @@ export namespace glub {
             .node = cast<number>(td["node"]).integer(),
             .path = parse_path(td),
           };
+          auto tp = type_of(c.path);
 
           auto smp = cast<number>(chd["sampler"]).integer();
           auto & sd = cast<dict>(smps[smp]);
@@ -222,16 +236,21 @@ export namespace glub {
           c.samples.set_capacity(ts.count);
 
           auto oidx = cast<number>(sd["output"]).integer();
-          auto os = accessor(oidx, type_of(c.path), comp_type::FLOAT);
+          auto os = accessor(oidx, tp, comp_type::FLOAT);
           if (ts.count != os.count) throw invalid_parameter {};
 
           if (sd.has_key("interpolation")) c.interp = parse_interp(sd);
           if (c.interp != interp::LINEAR) throw unsupported_feature { "Non-linear interpolation" };
 
           auto & b = buffer(0);
-          auto bv = buffer_view(ts.buffer_view);
-          auto tsp = reinterpret_cast<const float *>(&b[bv.ofs + ts.offset]);
-          for (auto i = 0; i < ts.count; i++) c.timestamps[i] = tsp[i];
+          auto tbv = buffer_view(ts.buffer_view);
+          auto tsp = reinterpret_cast<const float *>(&b[tbv.ofs + ts.offset]);
+          auto obv = buffer_view(os.buffer_view);
+          auto osp = reinterpret_cast<const float *>(&b[obv.ofs + os.offset]);
+          for (auto i = 0; i < ts.count; i++) {
+            c.samples[i].value = take_vec4(osp, tp);
+            c.samples[i].time = tsp[i];
+          }
 
           res[i].channels[j] = traits::move(c);
         }
