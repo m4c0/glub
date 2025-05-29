@@ -85,55 +85,11 @@ int main() try {
     dump_node(meta, cast<number>(node_idx).integer());
   }
 
-  if (root.has_key("animations")) {
-    putln();
-    putln("animations:");
-    auto & anims = cast<array>(root["animations"]);
-    for (auto & anim: anims) {
-      auto & ad = cast<dict>(anim);
-      if (ad.has_key("name")) putln("name: ", cast<string>(ad["name"]).str());
-
-      auto & smps = cast<array>(ad["samplers"]);
-      auto & chs = cast<array>(ad["channels"]);
-      for (auto & ch : chs) {
-        auto & chd = cast<dict>(ch);
-
-        auto smp = cast<number>(chd["sampler"]).integer();
-        putln("channel sampler: ", smp);
-
-        auto & td = cast<dict>(chd["target"]);
-        auto & sd = cast<dict>(smps[smp]);
-
-        auto tidx = cast<number>(sd["input"]).integer();
-        auto ts = meta.accessor(tidx, type::SCALAR, comp_type::FLOAT);
-
-        auto oidx = cast<number>(sd["output"]).integer();
-        auto os = meta.accessor(oidx);
-        if (ts.count != os.count) throw invalid_parameter {};
-
-        struct channel {
-          int node;
-          path path;
-          interp interp = interp::LINEAR;
-          hai::array<float> timestamps;
-        };
-        channel c {
-          .node = cast<number>(td["node"]).integer(),
-          .path = parse_path(td),
-          .timestamps { static_cast<unsigned>(ts.count) },
-        };
-
-        if (sd.has_key("interpolation")) c.interp = parse_interp(sd);
-        if (c.interp != interp::LINEAR) throw unsupported_feature { "Non-linear interpolation" };
-
-        auto & b = meta.buffer(0);
-        auto bv = meta.buffer_view(ts.buffer_view);
-        auto tsp = reinterpret_cast<const float *>(&b[bv.ofs + ts.offset]);
-        for (auto i = 0; i < ts.count; i++) c.timestamps[i] = tsp[i];
-
-        putln("target node: ", c.node);
-        for (auto t : c.timestamps) putln("  timestamp: ", t);
-      }
+  putln();
+  for (auto & a : meta.animations()) {
+    putln("animation");
+    for (auto & c : a.channels) {
+      putln("  channel node: ", c.node, " timestamps: ", c.timestamps.size());
     }
   }
 } catch (unsupported_feature f) {
