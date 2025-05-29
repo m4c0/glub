@@ -97,7 +97,7 @@ int main() try {
         case path::SCALE:       putln("scale");       break;
       }
       for (auto [v, t] : c.samples) {
-        putfn("  - %f %f %f %f @%f", v.x, v.y, v.x, v.x, t);
+        putfn("  - %f %f %f %f @%f", v.x, v.y, v.z, v.w, t);
       }
     }
   }
