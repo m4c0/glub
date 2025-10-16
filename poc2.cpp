@@ -25,12 +25,25 @@ struct chunk {
   uint32_t type;
 };
 
+struct node {
+  jute::heap name {};
+  int camera = -1;
+  int mesh = -1;
+  int skin = -1;
+  hai::array<int> children {};
+  hai::array<float> matrix {};
+  hai::array<float> rotation {};
+  hai::array<float> scale {};
+  hai::array<float> translation {};
+  hai::array<float> weights {};
+};
 struct scene {
-  jute::heap name;
+  jute::heap name {};
   hai::array<int> nodes {};
 };
 struct t {
   int scene = -1;
+  hai::array<::node> nodes {};
   hai::array<::scene> scenes {};
 };
 
@@ -62,6 +75,50 @@ int main() try {
 
   t t {};
 
+  const auto parse_floats = [&](auto & n, jute::view key, auto & lst) {
+    if (n.has_key(key)) {
+      auto & list = cast<array>(n[key]);
+      lst.set_capacity(list.size());
+      for (auto j = 0; j < list.size(); j++) {
+        lst[j] = cast<number>(list[j]).real();
+      }
+    }
+  };
+  const auto parse_ints = [&](auto & n, jute::view key, auto & lst) {
+    if (n.has_key(key)) {
+      auto & list = cast<array>(n[key]);
+      lst.set_capacity(list.size());
+      for (auto j = 0; j < list.size(); j++) {
+        lst[j] = cast<number>(list[j]).integer();
+      }
+    }
+  };
+  const auto parse_int = [&](auto & n, jute::view key, auto & v) {
+    if (n.has_key(key)) v = cast<number>(n[key]).integer();
+  };
+
+  if (root.has_key("nodes")) {
+    auto & nodes = cast<array>(root["nodes"]);
+    t.nodes.set_capacity(nodes.size());
+    for (auto i = 0; i < nodes.size(); i++) {
+      auto & n = cast<dict>(nodes[i]);
+      parse_int(n, "camera", t.nodes[i].camera);
+      parse_ints(n, "children", t.nodes[i].children);
+      parse_int(n, "skin", t.nodes[i].skin);
+      parse_floats(n, "matrix", t.nodes[i].matrix);
+      parse_int(n, "mesh", t.nodes[i].mesh);
+      parse_floats(n, "rotation", t.nodes[i].rotation);
+      parse_floats(n, "scale", t.nodes[i].scale);
+      parse_floats(n, "translation", t.nodes[i].translation);
+      parse_floats(n, "weights", t.nodes[i].weights);
+      if (n.has_key("name")) t.nodes[i].name = cast<string>(n["name"]).str();
+
+      if (!t.nodes[i].matrix.size()) t.nodes[i].matrix = hai::array<float>::make(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
+      if (!t.nodes[i].rotation.size()) t.nodes[i].rotation = hai::array<float>::make(0, 0, 0, 1);
+      if (!t.nodes[i].scale.size()) t.nodes[i].scale = hai::array<float>::make(1, 1, 1);
+      if (!t.nodes[i].translation.size()) t.nodes[i].translation = hai::array<float>::make(0, 0, 0);
+    }
+  }
   if (root.has_key("scene")) t.scene = cast<number>(root["scene"]).integer();
   if (root.has_key("scenes")) {
     auto & scenes = cast<array>(root["scenes"]);
@@ -69,22 +126,31 @@ int main() try {
     for (auto i = 0; i < scenes.size(); i++) {
       auto & s = cast<dict>(scenes[i]);
       if (s.has_key("name")) t.scenes[i].name = cast<string>(s["name"]).str();
-      if (s.has_key("nodes")) {
-        auto & nodes = cast<array>(s["nodes"]);
-        t.scenes[i].nodes.set_capacity(nodes.size());
-        for (auto j = 0; j < nodes.size(); j++) {
-          t.scenes[i].nodes[j] = cast<number>(nodes[j]).integer();
-        }
-      }
+      parse_ints(s, "nodes", t.scenes[i].nodes);
     }
   }
 
-  putln("scene: ", t.scene);
-  for (auto & s : t.scenes) {
-    putln("scenes:");
-    put("- ", s.name);
-    for (auto i : s.nodes) put(", ", i);
+  const auto list = [](auto & ls) {
+    for (auto l : ls) put(l, " ");
     putln();
+  };
+
+  putln("nodes:");
+  for (auto & n : t.nodes) {
+    put("- ", n.name, " ");
+    putln("cam:", n.camera, " mesh:", n.mesh, " skin:", n.skin);
+    put("  children: ");    list(n.children);
+    put("  matrix: ");      list(n.matrix);
+    put("  rotation: ");    list(n.rotation);
+    put("  scale: ");       list(n.scale);
+    put("  translation: "); list(n.translation);
+    put("  weights: ");     list(n.weights);
+  }
+  putln("scene: ", t.scene);
+  putln("scenes:");
+  for (auto & s : t.scenes) {
+    putln("- ", s.name);
+    put("  nodes: "); list(s.nodes);
   }
   putln();
 
