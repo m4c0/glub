@@ -1,6 +1,6 @@
 #pragma leco tool
 import file;
-import glub;
+import glub_old;
 import hai;
 import jason;
 import jute;

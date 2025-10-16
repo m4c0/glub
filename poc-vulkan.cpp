@@ -2,7 +2,7 @@
 #pragma leco add_shader "poc-vulkan.frag"
 #pragma leco add_shader "poc-vulkan.vert"
 
-import glub;
+import glub_old;
 import hai;
 import silog;
 import sitime;
