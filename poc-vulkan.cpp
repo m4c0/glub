@@ -1,4 +1,4 @@
-#pragma leco app
+//#pragma leco app
 #pragma leco add_shader "poc-vulkan.frag"
 #pragma leco add_shader "poc-vulkan.vert"
 
