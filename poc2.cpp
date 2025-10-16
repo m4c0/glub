@@ -3,13 +3,14 @@
 import jason;
 import jojo;
 import jute;
+import hai;
 import print;
 import traits;
 
 using namespace traits::ints;
 
 struct error {
-  const char * msg;
+  const char * what;
 };
 
 struct header {
@@ -22,6 +23,15 @@ static_assert(sizeof(header) == 12);
 struct chunk {
   uint32_t length;
   uint32_t type;
+};
+
+struct scene {
+  jute::heap name;
+  hai::array<int> nodes {};
+};
+struct t {
+  int scene = -1;
+  hai::array<::scene> scenes {};
 };
 
 int main() try {
@@ -46,8 +56,45 @@ int main() try {
   
   auto meta = jason::parse(jute::view { json_data, json->length });
   auto data = jute::view { bin_data, bin->length };
+  
+  using namespace jason::ast::nodes;
+  auto & root = cast<dict>(meta);
 
+  t t {};
+
+  if (root.has_key("scene")) t.scene = cast<number>(root["scene"]).integer();
+  if (root.has_key("scenes")) {
+    auto & scenes = cast<array>(root["scenes"]);
+    t.scenes.set_capacity(scenes.size());
+    for (auto i = 0; i < scenes.size(); i++) {
+      auto & s = cast<dict>(scenes[i]);
+      if (s.has_key("name")) t.scenes[i].name = cast<string>(s["name"]).str();
+      if (s.has_key("nodes")) {
+        auto & nodes = cast<array>(s["nodes"]);
+        t.scenes[i].nodes.set_capacity(nodes.size());
+        for (auto j = 0; j < nodes.size(); j++) {
+          t.scenes[i].nodes[j] = cast<number>(nodes[j]).integer();
+        }
+      }
+    }
+  }
+
+  putln("scene: ", t.scene);
+  for (auto & s : t.scenes) {
+    putln("scenes:");
+    put("- ", s.name);
+    for (auto i : s.nodes) put(", ", i);
+    putln();
+  }
+  putln();
+
+  for (auto &[k, v] : root) {
+    putln(k);
+  }
+} catch (const jason::error & e) {
+  errln(e.what);
+  return 1;
 } catch (const error & e) {
-  errln(e.msg);
+  errln(e.what);
   return 1;
 }
