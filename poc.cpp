@@ -1,5 +1,4 @@
 #pragma leco tool
-import file;
 import glub_old;
 import hai;
 import jason;
