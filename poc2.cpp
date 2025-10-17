@@ -138,6 +138,8 @@ int main() try {
         parse_int(prim, "indices",  t.meshes[i].primitives[j].indices);
         parse_int(prim, "material", t.meshes[i].primitives[j].material);
         parse_int(prim, "mode",     t.meshes[i].primitives[j].mode);
+
+        if (prim.has_key("targets")) throw error { "unsupported: mesh.primitive.targets" };
       }
     }
   }
