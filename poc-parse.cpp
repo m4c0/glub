@@ -1,4 +1,4 @@
-#pragma leco test
+#pragma leco tool
 
 import glub;
 import jason;
