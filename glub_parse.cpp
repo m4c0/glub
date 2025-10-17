@@ -42,7 +42,7 @@ glub::t glub::parse(const char * raw, unsigned size) {
   using namespace jason::ast::nodes;
   auto & root = cast<dict>(meta);
 
-  t t {};
+  t t { .data = data };
 
   const auto parse_bool = [&](auto & n, jute::view key, auto & v) {
     if (n.has_key(key)) v = cast<boolean>(n[key]);

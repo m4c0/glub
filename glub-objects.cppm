@@ -98,5 +98,7 @@ export namespace glub {
     hai::array<scene> scenes {};
     hai::array<skin> skins {};
     int scene = -1;
+
+    jute::view data;
   };
 }
