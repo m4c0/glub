@@ -105,6 +105,12 @@ struct scene {
   jute::heap name {};
   hai::array<int> nodes {};
 };
+struct skin {
+  int inverse_bind_mat = -1;
+  int skeleton = -1;
+  hai::array<int> joints {};
+  jute::heap name {};
+};
 struct t {
   hai::array<accessor> accessors {};
   hai::array<buffer> buffers {};
@@ -112,6 +118,7 @@ struct t {
   hai::array<mesh> meshes {};
   hai::array<node> nodes {};
   hai::array<scene> scenes {};
+  hai::array<skin> skins {};
   int scene = -1;
 };
 
@@ -260,6 +267,14 @@ int main() try {
       parse_ints  (n, "nodes", o.nodes);
     });
   }
+  if (root.has_key("skins")) {
+    iter(root, "skins", t.skins, [&](auto & n, auto & o) {
+      parse_int   (n, "inverseBindMatrices", o.inverse_bind_mat);
+      parse_int   (n, "skeleton",            o.skeleton);
+      parse_ints  (n, "joints",              o.joints);
+      parse_string(n, "name",                o.name);
+    });
+  }
 
   const auto list = [](auto & ls) {
     for (auto l : ls) put(l, " ");
@@ -311,6 +326,11 @@ int main() try {
   for (auto & s : t.scenes) {
     putln("- ", s.name);
     put("  nodes: "); list(s.nodes);
+  }
+  putln("skins:");
+  for (auto & s : t.skins) {
+    putln("- ", s.name, " ibm:", s.inverse_bind_mat, " skel:", s.skeleton);
+    put("  joints:"); for (auto n : s.joints) put(" ", n); putln();
   }
   putln();
 
