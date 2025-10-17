@@ -25,6 +25,17 @@ struct chunk {
   uint32_t type;
 };
 
+struct accessor {
+  int buffer_view = -1;
+  int byte_offset = 0;
+  int component_type;
+  bool normalised = false;
+  int count;
+  jute::heap type;
+  hai::array<float> max {};
+  hai::array<float> min {};
+  jute::heap name {};
+};
 struct attribute {
   jute::heap key {};
   int accessor = -1;
@@ -59,6 +70,7 @@ struct scene {
 };
 struct t {
   int scene = -1;
+  hai::array<::accessor> accessors {};
   hai::array<::mesh> meshes {};
   hai::array<::node> nodes {};
   hai::array<::scene> scenes {};
@@ -92,6 +104,9 @@ int main() try {
 
   t t {};
 
+  const auto parse_bool = [&](auto & n, jute::view key, auto & v) {
+    if (n.has_key(key)) v = cast<boolean>(n[key]);
+  };
   const auto parse_floats = [&](auto & n, jute::view key, auto & lst) {
     if (n.has_key(key)) {
       auto & list = cast<array>(n[key]);
@@ -124,6 +139,21 @@ int main() try {
     }
   };
 
+  if (root.has_key("accessors")) {
+    iter(root, "accessors", t.accessors, [&](auto & n, auto & o) {
+      parse_int(n, "bufferView", o.buffer_view);
+      parse_int(n, "byteOffset", o.byte_offset);
+      o.component_type = cast<number>(n["componentType"]).integer();
+      parse_bool(n, "normalized", o.normalised);
+      o.count = cast<number>(n["count"]).integer();
+      o.type = cast<string>(n["type"]).str();
+      parse_floats(n, "max", o.max);
+      parse_floats(n, "min", o.min);
+      parse_string(n, "name", o.name);
+
+      if (n.has_key("sparse")) throw error { "unsupported: accessor.sparse" };
+    });
+  }
   if (root.has_key("meshes")) {
     iter(root, "meshes", t.meshes, [&](auto & n, auto & o) {
       parse_floats(n, "weights", o.weights);
@@ -175,6 +205,13 @@ int main() try {
     putln();
   };
 
+  putln("accessors:");
+  for (auto & s : t.accessors) {
+    putln("- ", s.name, " typ:", s.type, " bv:", s.buffer_view, " ofs:", s.byte_offset,
+        " ctyp:", s.component_type, " norm:", s.normalised, " count:", s.count);
+    put("  min:"); for (auto & q : s.min) put(" ", q); putln();
+    put("  max:"); for (auto & q : s.max) put(" ", q); putln();
+  }
   putln("meshes:");
   for (auto & s : t.meshes) {
     putln("- ", s.name);
