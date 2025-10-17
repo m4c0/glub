@@ -64,6 +64,11 @@ struct attribute {
   jute::heap key {};
   int accessor = -1;
 };
+struct buffer {
+  jute::heap uri {};
+  int byte_length;
+  jute::heap name {};
+};
 struct buffer_view {
   int buffer;
   int byte_offset = 0;
@@ -102,6 +107,7 @@ struct scene {
 };
 struct t {
   hai::array<accessor> accessors {};
+  hai::array<buffer> buffers {};
   hai::array<buffer_view> buffer_views {};
   hai::array<mesh> meshes {};
   hai::array<node> nodes {};
@@ -192,6 +198,13 @@ int main() try {
       if (n.has_key("sparse")) throw error { "unsupported: accessor.sparse" };
     });
   }
+  if (root.has_key("buffers")) {
+    iter(root, "buffers", t.buffers, [&](auto & n, auto & o) {
+      parse_string(n, "uri", o.uri);
+      o.byte_length = cast<number>(n["byteLength"]).integer();
+      parse_string(n, "name", o.name);
+    });
+  }
   if (root.has_key("bufferViews")) {
     iter(root, "bufferViews", t.buffer_views, [&](auto & n, auto & o) {
       o.buffer = cast<number>(n["buffer"]).integer();
@@ -259,6 +272,10 @@ int main() try {
         " ctyp:", static_cast<int>(s.component_type), " norm:", s.normalised, " count:", s.count);
     put("  min:"); for (auto & q : s.min) put(" ", q); putln();
     put("  max:"); for (auto & q : s.max) put(" ", q); putln();
+  }
+  putln("buffers:");
+  for (auto & s : t.buffers) {
+    putln("- ", s.name, " len:", s.byte_length, " uri:", s.uri);
   }
   putln("buffer views:");
   for (auto & s : t.buffer_views) {
