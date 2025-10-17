@@ -40,6 +40,14 @@ struct attribute {
   jute::heap key {};
   int accessor = -1;
 };
+struct buffer_view {
+  int buffer;
+  int byte_offset = 0;
+  int byte_length;
+  int byte_stride = -1;
+  int target = -1;
+  jute::heap name {};
+};
 struct primitive {
   hai::array<attribute> attributes;
   int indices = -1;
@@ -69,11 +77,12 @@ struct scene {
   hai::array<int> nodes {};
 };
 struct t {
+  hai::array<accessor> accessors {};
+  hai::array<buffer_view> buffer_views {};
+  hai::array<mesh> meshes {};
+  hai::array<node> nodes {};
+  hai::array<scene> scenes {};
   int scene = -1;
-  hai::array<::accessor> accessors {};
-  hai::array<::mesh> meshes {};
-  hai::array<::node> nodes {};
-  hai::array<::scene> scenes {};
 };
 
 int main() try {
@@ -154,6 +163,16 @@ int main() try {
       if (n.has_key("sparse")) throw error { "unsupported: accessor.sparse" };
     });
   }
+  if (root.has_key("bufferViews")) {
+    iter(root, "bufferViews", t.buffer_views, [&](auto & n, auto & o) {
+      o.buffer = cast<number>(n["buffer"]).integer();
+      parse_int(n, "byteOffset", o.byte_offset);
+      o.byte_length = cast<number>(n["byteLength"]).integer();
+      parse_int(n, "byteStride", o.byte_stride);
+      parse_int(n, "target", o.target);
+      parse_string(n, "name", o.name);
+    });
+  }
   if (root.has_key("meshes")) {
     iter(root, "meshes", t.meshes, [&](auto & n, auto & o) {
       parse_floats(n, "weights", o.weights);
@@ -211,6 +230,11 @@ int main() try {
         " ctyp:", s.component_type, " norm:", s.normalised, " count:", s.count);
     put("  min:"); for (auto & q : s.min) put(" ", q); putln();
     put("  max:"); for (auto & q : s.max) put(" ", q); putln();
+  }
+  putln("buffer views:");
+  for (auto & s : t.buffer_views) {
+    putln("- ", s.name, " buf:", s.buffer, " ofs:", s.byte_offset, " len:", s.byte_length,
+        " stride:", s.byte_stride, " target:", s.target);
   }
   putln("meshes:");
   for (auto & s : t.meshes) {
