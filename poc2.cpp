@@ -25,10 +25,34 @@ struct chunk {
   uint32_t type;
 };
 
+enum class accessor_comp_type : int {
+  nil = -1,
+  byte = 5120,
+  unsigned_byte = 5121,
+  shrt = 5122,
+  unsigned_shrt = 5123,
+  unsigned_int = 5125,
+  flt = 5126,
+};
+enum class buffer_view_type : int {
+  nil = -1,
+  array_buffer = 34962,
+  element_array_buffer = 34963,
+};
+enum class primitive_mode : int {
+  points = 0,
+  lines = 1,
+  line_loop = 2,
+  line_strip = 3,
+  triangles = 4,
+  triangle_strip = 5,
+  triangle_fan = 6,
+};
+
 struct accessor {
   int buffer_view = -1;
   int byte_offset = 0;
-  int component_type;
+  accessor_comp_type component_type;
   bool normalised = false;
   int count;
   jute::heap type;
@@ -45,14 +69,14 @@ struct buffer_view {
   int byte_offset = 0;
   int byte_length;
   int byte_stride = -1;
-  int target = -1;
+  buffer_view_type target = buffer_view_type::nil;
   jute::heap name {};
 };
 struct primitive {
   hai::array<attribute> attributes;
   int indices = -1;
   int material = -1;
-  int mode = 4;
+  primitive_mode mode = primitive_mode::triangles;
   hai::array<jute::heap> targets {};
 };
 struct mesh {
@@ -116,6 +140,11 @@ int main() try {
   const auto parse_bool = [&](auto & n, jute::view key, auto & v) {
     if (n.has_key(key)) v = cast<boolean>(n[key]);
   };
+  const auto parse_enum = [&](auto & n, jute::view key, auto & v) {
+    // TODO: how to validate in a generic way?
+    using T = traits::decay<decltype(v)>::type;
+    if (n.has_key(key)) v = static_cast<T>(cast<number>(n[key]).integer());
+  };
   const auto parse_floats = [&](auto & n, jute::view key, auto & lst) {
     if (n.has_key(key)) {
       auto & list = cast<array>(n[key]);
@@ -152,7 +181,7 @@ int main() try {
     iter(root, "accessors", t.accessors, [&](auto & n, auto & o) {
       parse_int(n, "bufferView", o.buffer_view);
       parse_int(n, "byteOffset", o.byte_offset);
-      o.component_type = cast<number>(n["componentType"]).integer();
+      o.component_type = accessor_comp_type { cast<number>(n["componentType"]).integer() };
       parse_bool(n, "normalized", o.normalised);
       o.count = cast<number>(n["count"]).integer();
       o.type = cast<string>(n["type"]).str();
@@ -169,7 +198,7 @@ int main() try {
       parse_int(n, "byteOffset", o.byte_offset);
       o.byte_length = cast<number>(n["byteLength"]).integer();
       parse_int(n, "byteStride", o.byte_stride);
-      parse_int(n, "target", o.target);
+      parse_enum(n, "target", o.target);
       parse_string(n, "name", o.name);
     });
   }
@@ -184,9 +213,9 @@ int main() try {
         auto ptr = p.attributes.begin();
         for (auto &[k, v] : attrs) *ptr++ = { k, cast<number>(v).integer() };
 
-        parse_int(prim, "indices",  p.indices);
-        parse_int(prim, "material", p.material);
-        parse_int(prim, "mode",     p.mode);
+        parse_int (prim, "indices",  p.indices);
+        parse_int (prim, "material", p.material);
+        parse_enum(prim, "mode",     p.mode);
 
         if (prim.has_key("targets")) throw error { "unsupported: mesh.primitive.targets" };
       });
@@ -227,14 +256,14 @@ int main() try {
   putln("accessors:");
   for (auto & s : t.accessors) {
     putln("- ", s.name, " typ:", s.type, " bv:", s.buffer_view, " ofs:", s.byte_offset,
-        " ctyp:", s.component_type, " norm:", s.normalised, " count:", s.count);
+        " ctyp:", static_cast<int>(s.component_type), " norm:", s.normalised, " count:", s.count);
     put("  min:"); for (auto & q : s.min) put(" ", q); putln();
     put("  max:"); for (auto & q : s.max) put(" ", q); putln();
   }
   putln("buffer views:");
   for (auto & s : t.buffer_views) {
     putln("- ", s.name, " buf:", s.buffer, " ofs:", s.byte_offset, " len:", s.byte_length,
-        " stride:", s.byte_stride, " target:", s.target);
+        " stride:", s.byte_stride, " target:", static_cast<int>(s.target));
   }
   putln("meshes:");
   for (auto & s : t.meshes) {
@@ -242,7 +271,7 @@ int main() try {
     put("  weights: "); list(s.weights);
     putln("  primitives:");
     for (auto & r : s.primitives) {
-      putln("  - ind:", r.indices, " mat:", r.material, " mode:", r.mode);
+      putln("  - ind:", r.indices, " mat:", r.material, " mode:", static_cast<int>(r.mode));
       putln("    attributes:");
       for (auto & q : r.attributes) putln("    - ", q.key, " = ", q.accessor);
       putln("    targets:");
