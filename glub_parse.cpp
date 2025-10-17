@@ -147,11 +147,6 @@ glub::t glub::parse(const char * raw, unsigned size) {
       parse_floats(n, "translation", o.translation);
       parse_floats(n, "weights",     o.weights);
       parse_string(n, "name",        o.name);
-
-      if (!o.matrix.size())      o.matrix      = hai::array<float>::make(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
-      if (!o.rotation.size())    o.rotation    = hai::array<float>::make(0, 0, 0, 1);
-      if (!o.scale.size())       o.scale       = hai::array<float>::make(1, 1, 1);
-      if (!o.translation.size()) o.translation = hai::array<float>::make(0, 0, 0);
     });
   }
   if (root.has_key("scene")) t.scene = cast<number>(root["scene"]).integer();
