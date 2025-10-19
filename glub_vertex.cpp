@@ -1,4 +1,5 @@
 module glub;
+import hai;
 
 [[noreturn]] static inline void die(const char * msg) {
   throw glub::error { msg };
@@ -34,11 +35,6 @@ static auto & buffer_view_element_array_buffer(const glub::t & t, int n) {
   return bv;
 }
 
-static auto & mesh(const glub::t & t, int n) {
-  if (n < 0 || n >= t.buffer_views.size()) die("mesh index out-of-bounds");
-  return t.meshes[n];
-}
-
 template<typename T>
 static auto cast(auto & acc, auto & bv, auto & t) {
   auto ptr = reinterpret_cast<const T *>(t.data.begin() + acc.byte_offset + bv.byte_offset);
@@ -48,27 +44,66 @@ static auto cast(auto & acc, auto & bv, auto & t) {
 
 glub::mesh_counts glub::mesh_counts::for_all_meshes(const glub::t & t) {
   struct mesh_counts res {};
-  for (auto i = 0; i < t.meshes.size(); i++) {
-    auto [vc, ic] = for_mesh(t, i);
-    res.v_count += vc;
-    res.i_count += ic;
-  }
-  return res;
-}
+  for (auto & m : t.meshes) {
+    for (auto & p : m.primitives) {
+      if (p.mode != glub::primitive_mode::triangles) die("unsupported primitive mode");
+      if (p.indices < 0) die("missing indices in mesh");
 
-glub::mesh_counts glub::mesh_counts::for_mesh(const glub::t & t, unsigned m) {
-  struct mesh_counts res {};
-  for (auto & p : ::mesh(t, m).primitives) {
-    if (p.mode != glub::primitive_mode::triangles) die("unsupported primitive mode");
-    if (p.indices < 0) die("missing indices in mesh");
+      for (auto &[key, a] : p.attributes) {
+        if (key != "POSITION") continue;
+        res.v_count += accessor_vec3(t, a).count;
+      }
 
-    for (auto &[key, a] : p.attributes) {
-      if (key != "POSITION") continue;
-      res.v_count += accessor_vec3(t, a).count;
+      res.i_count += ::accessor(t, p.indices).count;
     }
-
-    res.i_count += ::accessor(t, p.indices).count;
   }
   return res;
 }
 
+void glub::mesh_counts::for_each(const t & t, hai::fn<void, mesh_counts> fn) {
+  for (auto & m : t.meshes) {
+    for (auto & p : m.primitives) {
+      mesh_counts res {};
+      for (auto &[key, a] : p.attributes) {
+        if (key != "POSITION") continue;
+        res.v_count = ::accessor(t, a).count;
+      }
+      res.i_count = ::accessor(t, p.indices).count;
+      fn(res);
+    }
+  }
+}
+
+void glub::load_all_indices(const glub::t & t, unsigned short * ptr) {
+  for (auto & m : t.meshes) {
+    for (auto & p : m.primitives) {
+      if (p.mode != glub::primitive_mode::triangles) die("unsupported primitive mode");
+      if (p.indices < 0) die("missing indices in mesh");
+
+      auto & acc = ::accessor(t, p.indices);
+      if (acc.type != "SCALAR") die("unsupported accessor type");
+      if (acc.component_type == glub::accessor_comp_type::unsigned_shrt) {
+        auto & bv = buffer_view_element_array_buffer(t, acc.buffer_view);
+        auto buf = cast<unsigned short>(acc, bv, t);
+        for (auto i = 0; i < acc.count; i++) *ptr++ = *buf++;
+      } else die("unsupported accessor component type");
+    }
+  }
+}
+void glub::load_all_vertices(const glub::t & t, dotz::vec3 * ptr) {
+  for (auto & m : t.meshes) {
+    for (auto & p : m.primitives) {
+      if (p.mode != glub::primitive_mode::triangles) die("unsupported primitive mode");
+      if (p.indices < 0) die("missing indices in mesh");
+
+      for (auto &[key, a] : p.attributes) {
+        if (key != "POSITION") continue;
+
+        auto & acc = accessor_vec3(t, a);
+        auto & bv = buffer_view_array_buffer(t, acc.buffer_view);
+        auto buf = cast<dotz::vec3>(acc, bv, t);
+        for (auto i = 0; i < acc.count; i++) *ptr++ = *buf++;
+      }
+    }
+  }
+}

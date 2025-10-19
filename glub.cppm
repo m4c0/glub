@@ -2,6 +2,7 @@
 #pragma leco add_impl glub_vertex
 export module glub;
 export import :objects;
+import dotz;
 
 namespace glub {
   export struct error {
@@ -15,6 +16,9 @@ namespace glub {
     unsigned i_count {};
 
     static mesh_counts for_all_meshes(const t & t);
-    static mesh_counts for_mesh(const t & t, unsigned m);
+    static void for_each(const t & t, hai::fn<void, mesh_counts> fn);
   };
+
+  export void load_all_indices(const t & t, unsigned short * ptr);
+  export void load_all_vertices(const t & t, dotz::vec3 * ptr);
 }
