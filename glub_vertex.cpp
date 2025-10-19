@@ -46,6 +46,16 @@ static auto cast(auto & acc, auto & bv, auto & t) {
   return ptr;
 }
 
+glub::mesh_counts glub::mesh_counts::for_all_meshes(const glub::t & t) {
+  struct mesh_counts res {};
+  for (auto i = 0; i < t.meshes.size(); i++) {
+    auto [vc, ic] = for_mesh(t, i);
+    res.v_count += vc;
+    res.i_count += ic;
+  }
+  return res;
+}
+
 glub::mesh_counts glub::mesh_counts::for_mesh(const glub::t & t, unsigned m) {
   struct mesh_counts res {};
   for (auto & p : ::mesh(t, m).primitives) {

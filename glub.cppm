@@ -14,6 +14,7 @@ namespace glub {
     unsigned v_count {};
     unsigned i_count {};
 
+    static mesh_counts for_all_meshes(const t & t);
     static mesh_counts for_mesh(const t & t, unsigned m);
   };
 }
