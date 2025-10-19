@@ -1,4 +1,4 @@
-#pragma leco test
+#pragma leco tool
 
 import dotz;
 import glub;
@@ -59,9 +59,9 @@ int main() {
         auto & bv = buffer_view_array_buffer(t, acc.buffer_view);
         auto ptr = cast<dotz::vec3>(acc, bv, t);
 
-        //for (auto i = 0; i < acc.count; i++) {
-        //  putan(ptr[i].x, ptr[i].y, ptr[i].z);
-        //}
+        for (auto i = 0; i < acc.count; i++) {
+          putan(ptr[i].x, ptr[i].y, ptr[i].z);
+        }
       }
 
       auto & acc = accessor(t, p.indices);
@@ -69,10 +69,11 @@ int main() {
       if (acc.component_type == glub::accessor_comp_type::unsigned_shrt) {
         auto & bv = buffer_view_element_array_buffer(t, acc.buffer_view);
         auto ptr = cast<unsigned short>(acc, bv, t);
-        //for (auto i = 0; i < acc.count; i++) putln(ptr[i]);
+        for (auto i = 0; i < acc.count; i++) putln(ptr[i]);
       } else if (acc.component_type == glub::accessor_comp_type::unsigned_int) {
         auto & bv = buffer_view_element_array_buffer(t, acc.buffer_view);
         auto ptr = cast<unsigned int>(acc, bv, t);
+        for (auto i = 0; i < acc.count; i++) putln(ptr[i]);
       } else die("unsupported accessor component type");
     }
   }
