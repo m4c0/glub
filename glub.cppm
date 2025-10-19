@@ -21,5 +21,6 @@ namespace glub {
 
   export void load_all_indices(const t & t, unsigned short * ptr);
   export void load_all_normals(const t & t, dotz::vec3 * ptr);
+  export void load_all_uvs(const t & t, dotz::vec2 * ptr);
   export void load_all_vertices(const t & t, dotz::vec3 * ptr);
 }

@@ -11,6 +11,12 @@ static auto & accessor(const glub::t & t, int n) {
   if (a.normalised) die("normalised accessors are not supported");
   return a;
 }
+static auto & accessor_vec2(const glub::t & t, int n) {
+  auto & acc = accessor(t, n);
+  if (acc.component_type != glub::accessor_comp_type::flt) die("unsupported accessor component type");
+  if (acc.type != "VEC2") die("unsupported accessor type");
+  return acc;
+}
 static auto & accessor_vec3(const glub::t & t, int n) {
   auto & acc = accessor(t, n);
   if (acc.component_type != glub::accessor_comp_type::flt) die("unsupported accessor component type");
@@ -102,6 +108,23 @@ void glub::load_all_normals(const glub::t & t, dotz::vec3 * ptr) {
         auto & acc = accessor_vec3(t, a);
         auto & bv = buffer_view_array_buffer(t, acc.buffer_view);
         auto buf = cast<dotz::vec3>(acc, bv, t);
+        for (auto i = 0; i < acc.count; i++) *ptr++ = *buf++;
+      }
+    }
+  }
+}
+void glub::load_all_uvs(const glub::t & t, dotz::vec2 * ptr) {
+  for (auto & m : t.meshes) {
+    for (auto & p : m.primitives) {
+      if (p.mode != glub::primitive_mode::triangles) die("unsupported primitive mode");
+      if (p.indices < 0) die("missing indices in mesh");
+
+      for (auto &[key, a] : p.attributes) {
+        if (key != "TEXCOORD_0") continue;
+
+        auto & acc = accessor_vec2(t, a);
+        auto & bv = buffer_view_array_buffer(t, acc.buffer_view);
+        auto buf = cast<dotz::vec2>(acc, bv, t);
         for (auto i = 0; i < acc.count; i++) *ptr++ = *buf++;
       }
     }
