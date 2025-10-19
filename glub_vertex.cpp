@@ -90,6 +90,23 @@ void glub::load_all_indices(const glub::t & t, unsigned short * ptr) {
     }
   }
 }
+void glub::load_all_normals(const glub::t & t, dotz::vec3 * ptr) {
+  for (auto & m : t.meshes) {
+    for (auto & p : m.primitives) {
+      if (p.mode != glub::primitive_mode::triangles) die("unsupported primitive mode");
+      if (p.indices < 0) die("missing indices in mesh");
+
+      for (auto &[key, a] : p.attributes) {
+        if (key != "NORMAL") continue;
+
+        auto & acc = accessor_vec3(t, a);
+        auto & bv = buffer_view_array_buffer(t, acc.buffer_view);
+        auto buf = cast<dotz::vec3>(acc, bv, t);
+        for (auto i = 0; i < acc.count; i++) *ptr++ = *buf++;
+      }
+    }
+  }
+}
 void glub::load_all_vertices(const glub::t & t, dotz::vec3 * ptr) {
   for (auto & m : t.meshes) {
     for (auto & p : m.primitives) {
