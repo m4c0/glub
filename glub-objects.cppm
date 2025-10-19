@@ -62,6 +62,9 @@ export namespace glub {
     primitive_mode mode = primitive_mode::triangles;
     hai::array<jute::heap> targets {};
   };
+  struct material {
+    jute::heap name {};
+  };
   struct mesh {
     jute::heap name {};
     hai::array<primitive> primitives {};
@@ -93,6 +96,7 @@ export namespace glub {
     hai::array<accessor> accessors {};
     hai::array<buffer> buffers {};
     hai::array<buffer_view> buffer_views {};
+    hai::array<material> materials {};
     hai::array<mesh> meshes {};
     hai::array<node> nodes {};
     hai::array<scene> scenes {};

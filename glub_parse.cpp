@@ -116,6 +116,11 @@ glub::t glub::parse(const char * raw, unsigned size) {
       parse_string(n, "name", o.name);
     });
   }
+  if (root.has_key("materials")) {
+    iter(root, "materials", t.materials, [&](auto & n, auto & o) {
+      parse_string(n, "name", o.name);
+    });
+  }
   if (root.has_key("meshes")) {
     iter(root, "meshes", t.meshes, [&](auto & n, auto & o) {
       parse_floats(n, "weights", o.weights);

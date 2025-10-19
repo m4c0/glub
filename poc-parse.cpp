@@ -36,6 +36,10 @@ int main() try {
     putln("- ", s.name, " buf:", s.buffer, " ofs:", s.byte_offset, " len:", s.byte_length,
         " stride:", s.byte_stride, " target:", static_cast<int>(s.target));
   }
+  putln("materials:");
+  for (auto & s : t.materials) {
+    putln("- ", s.name);
+  }
   putln("meshes:");
   for (auto & s : t.meshes) {
     putln("- ", s.name);
