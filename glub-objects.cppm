@@ -27,6 +27,17 @@ export namespace glub {
     triangle_fan = 6,
   };
 
+  struct texture_info {
+    int index = -1;
+    int tex_coord = 0;
+  };
+  struct normal_texture_info : texture_info {
+    float scale = 1;
+  };
+  struct occlusion_texture_info : texture_info {
+    float strenght = 1;
+  };
+
   struct accessor {
     int buffer_view = -1;
     int byte_offset = 0;
@@ -64,6 +75,15 @@ export namespace glub {
   };
   struct material {
     jute::heap name {};
+    hai::array<float> base_colour_factor {};
+    texture_info base_colour_texture {};
+    float metallic_factor = 1;
+    float roughness_factor = 1;
+    texture_info metallic_roughness_texture {};
+    normal_texture_info normal_texture {};
+    occlusion_texture_info occlusion_texture {};
+    texture_info emissive_texture {};
+    hai::array<float> emissive_factor {};
   };
   struct mesh {
     jute::heap name {};

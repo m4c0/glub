@@ -70,6 +70,9 @@ glub::t glub::parse(const char * raw, unsigned size) {
       }
     }
   };
+  const auto parse_float = [&](auto & n, jute::view key, auto & v) {
+    if (n.has_key(key)) v = cast<number>(n[key]).real();
+  };
   const auto parse_int = [&](auto & n, jute::view key, auto & v) {
     if (n.has_key(key)) v = cast<number>(n[key]).integer();
   };
@@ -82,6 +85,13 @@ glub::t glub::parse(const char * raw, unsigned size) {
     for (auto i = 0; i < src_list.size(); i++) {
       fn(cast<dict>(src_list[i]), dst[i]);
     }
+  };
+
+  const auto parse_texinfo = [&](auto & n, jute::view key, auto & v) {
+    if (!n.has_key(key)) return;
+    auto & ti = cast<dict>(n[key]);
+    v.index = cast<number>(ti["index"]).integer();
+    parse_int(ti, "texCoord", v.tex_coord);
   };
 
   if (root.has_key("accessors")) {
@@ -119,6 +129,17 @@ glub::t glub::parse(const char * raw, unsigned size) {
   if (root.has_key("materials")) {
     iter(root, "materials", t.materials, [&](auto & n, auto & o) {
       parse_string(n, "name", o.name);
+      if (n.has_key("pbrMetallicRoughness")) {
+        auto & pbr = cast<dict>(n["pbrMetallicRoughness"]);
+        parse_floats(pbr, "baseColorFactor", o.base_colour_factor);
+        parse_texinfo(pbr, "baseColorTexture", o.base_colour_texture);
+        parse_float(pbr, "metallicFactor", o.metallic_factor);
+        parse_float(pbr, "roughnessFactor", o.roughness_factor);
+        parse_texinfo(pbr, "metallicRoughnessTexture", o.metallic_roughness_texture);
+      }
+      parse_texinfo(n, "normalTexture", o.normal_texture);
+      parse_texinfo(n, "occlusionTexture", o.occlusion_texture);
+      parse_texinfo(n, "emissiveTexture", o.emissive_texture);
     });
   }
   if (root.has_key("meshes")) {

@@ -38,7 +38,13 @@ int main() try {
   }
   putln("materials:");
   for (auto & s : t.materials) {
-    putln("- ", s.name);
+    putln("- ", s.name, " met:", s.metallic_factor, " rgh:", s.roughness_factor);
+    put("  clr: "); list(s.base_colour_factor);
+    putln("  tex idx:", s.base_colour_texture.index, " coord:", s.base_colour_texture.tex_coord);
+    putln("  mrt idx:", s.metallic_roughness_texture.index, " coord:", s.metallic_roughness_texture.tex_coord);
+    putln("  nml idx:", s.normal_texture.index, " coord:", s.normal_texture.tex_coord, " scl:", s.normal_texture.scale);
+    putln("  occ idx:", s.occlusion_texture.index, " coord:", s.occlusion_texture.tex_coord, " str:", s.occlusion_texture.strenght);
+    putln("  emi idx:", s.emissive_texture.index, " coord:", s.emissive_texture.tex_coord);
   }
   putln("meshes:");
   for (auto & s : t.meshes) {
