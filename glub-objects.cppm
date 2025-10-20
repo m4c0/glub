@@ -66,6 +66,12 @@ export namespace glub {
     buffer_view_type target = buffer_view_type::nil;
     jute::heap name {};
   };
+  struct image {
+    jute::heap uri {};
+    jute::heap mime_type {};
+    int buffer_view = -1;
+    jute::heap name {};
+  };
   struct primitive {
     hai::array<attribute> attributes;
     int indices = -1;
@@ -112,15 +118,22 @@ export namespace glub {
     hai::array<int> joints {};
     jute::heap name {};
   };
+  struct texture {
+    int sample = -1;
+    int source = -1;
+    jute::heap name {};
+  };
   struct t {
     hai::array<accessor> accessors {};
     hai::array<buffer> buffers {};
     hai::array<buffer_view> buffer_views {};
+    hai::array<image> images {};
     hai::array<material> materials {};
     hai::array<mesh> meshes {};
     hai::array<node> nodes {};
     hai::array<scene> scenes {};
     hai::array<skin> skins {};
+    hai::array<texture> textures {};
     int scene = -1;
 
     jute::view data;

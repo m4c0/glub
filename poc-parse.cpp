@@ -36,6 +36,11 @@ int main() try {
     putln("- ", s.name, " buf:", s.buffer, " ofs:", s.byte_offset, " len:", s.byte_length,
         " stride:", s.byte_stride, " target:", static_cast<int>(s.target));
   }
+  putln("images:");
+  for (auto & s : t.images) {
+    putln("- ", s.name, " bv:", s.buffer_view, " mime:", s.mime_type);
+    putln("  uri:", s.uri);
+  }
   putln("materials:");
   for (auto & s : t.materials) {
     putln("- ", s.name, " met:", s.metallic_factor, " rgh:", s.roughness_factor);
@@ -81,7 +86,10 @@ int main() try {
     putln("- ", s.name, " ibm:", s.inverse_bind_mat, " skel:", s.skeleton);
     put("  joints:"); for (auto n : s.joints) put(" ", n); putln();
   }
-  putln();
+  putln("textures:");
+  for (auto & s : t.textures) {
+    putln("- ", s.name, " smp:", s.sample, " src:", s.source);
+  }
 } catch (const jason::error & e) {
   errln(e.what);
   return 1;

@@ -126,6 +126,14 @@ glub::t glub::parse(const char * raw, unsigned size) {
       parse_string(n, "name", o.name);
     });
   }
+  if (root.has_key("images")) {
+    iter(root, "images", t.images, [&](auto & n, auto & o) {
+      parse_string(n, "uri",        o.uri);
+      parse_string(n, "mimeType",   o.mime_type);
+      parse_int   (n, "bufferView", o.buffer_view);
+      parse_string(n, "name",       o.name);
+    });
+  }
   if (root.has_key("materials")) {
     iter(root, "materials", t.materials, [&](auto & n, auto & o) {
       parse_string(n, "name", o.name);
@@ -188,6 +196,13 @@ glub::t glub::parse(const char * raw, unsigned size) {
       parse_int   (n, "skeleton",            o.skeleton);
       parse_ints  (n, "joints",              o.joints);
       parse_string(n, "name",                o.name);
+    });
+  }
+  if (root.has_key("textures")) {
+    iter(root, "textures", t.textures, [&](auto & n, auto & o) {
+      parse_int   (n, "sample", o.sample);
+      parse_int   (n, "source", o.source);
+      parse_string(n, "name",   o.name);
     });
   }
 
