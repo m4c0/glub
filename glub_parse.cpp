@@ -230,5 +230,20 @@ glub::t glub::parse(const char * raw, unsigned size) {
     });
   }
 
+  for (auto & a : t.accessors) {
+    if (a.normalised) throw error { "normalised accessors are not supported" };
+  }
+
+  for (auto & m : t.meshes) {
+    for (auto & p : m.primitives) {
+      if (p.mode != glub::primitive_mode::triangles) throw error { "unsupported primitive mode" };
+      if (p.indices < 0) throw error { "missing indices in mesh" };
+
+      for (auto &[k, a] : p.attributes) {
+        if (a < 0 || a > t.accessors.size()) throw error { "invalid accessor index" };
+      }
+    }
+  }
+
   return t;
 }
