@@ -176,7 +176,14 @@ glub::t glub::parse(const char * raw, unsigned size) {
         auto & attrs = cast<dict>(prim["attributes"]);
         p.attributes.set_capacity(attrs.size());
         auto ptr = p.attributes.begin();
-        for (auto &[k, v] : attrs) *ptr++ = { k, cast<number>(v).integer() };
+        for (auto &[k, v] : attrs) {
+          auto vi = cast<number>(v).integer();
+          *ptr++ = { k, vi };
+
+          if (k == "POSITION") p.position = vi;
+          else if (k == "NORMAL") p.normal = vi;
+          else if (k == "TEXCOORD_0") p.texcoord_0 = vi;
+        }
 
         parse_int (prim, "indices",  p.indices);
         parse_int (prim, "material", p.material);
