@@ -30,6 +30,14 @@ int main() try {
   putln("animations:");
   for (auto & s : t.animations) {
     putln("- ", s.name);
+    putln("  channels");
+    for (auto & r : s.channels) {
+      putln("  - path:", r.target_path, " node:", r.target_node, " smp:", r.sampler); 
+    }
+    putln("  samplers");
+    for (auto & r : s.samplers) {
+      putln("  - in:", r.input, " int:", r.interpolation, " out:", r.output); 
+    }
   }
   putln("buffers:");
   for (auto & s : t.buffers) {

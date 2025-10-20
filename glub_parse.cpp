@@ -112,6 +112,18 @@ glub::t glub::parse(const char * raw, unsigned size) {
   if (root.has_key("animations")) {
     iter(root, "animations", t.animations, [&](auto & n, auto & o) {
       parse_string(n, "name", o.name);
+
+      iter(n, "channels", o.channels, [&](auto & n, auto & o) {
+        o.sampler = cast<number>(n["sampler"]).integer();
+        auto & p = cast<dict>(n["target"]);
+        parse_int(p, "node", o.target_node);
+        o.target_path = cast<string>(p["path"]).str();
+      });
+      iter(n, "samplers", o.samplers, [&](auto & n, auto & o) {
+        o.input = cast<number>(n["input"]).integer();
+        parse_string(n, "interpolation", o.interpolation);
+        o.output = cast<number>(n["output"]).integer();
+      });
     });
   }
   if (root.has_key("buffers")) {

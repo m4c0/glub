@@ -2,6 +2,8 @@ export module glub:objects;
 import hai;
 import jute;
 
+using namespace jute::literals;
+
 export namespace glub {
   enum class accessor_comp_type : int {
     nil = -1,
@@ -25,6 +27,17 @@ export namespace glub {
     triangles = 4,
     triangle_strip = 5,
     triangle_fan = 6,
+  };
+
+  struct animation_channel {
+    int sampler = -1;
+    int target_node = -1;
+    jute::heap target_path {};
+  };
+  struct animation_sampler {
+    int input = -1;
+    jute::heap interpolation = "LINEAR"_hs;
+    int output = -1;
   };
 
   struct texture_info {
@@ -51,6 +64,8 @@ export namespace glub {
   };
   struct animation {
     jute::heap name {};
+    hai::array<animation_channel> channels {};
+    hai::array<animation_sampler> samplers {};
   };
   struct attribute {
     jute::heap key {};
