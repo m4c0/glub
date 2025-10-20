@@ -232,6 +232,11 @@ glub::t glub::parse(const char * raw, unsigned size) {
 
   for (auto & a : t.accessors) {
     if (a.normalised) throw error { "normalised accessors are not supported" };
+    if (a.buffer_view < 0 || a.buffer_view >= t.buffer_views.size()) throw error { "invalid buffer view index" };
+  }
+
+  for (auto & bv : t.buffer_views) {
+    if (bv.buffer < 0 || bv.buffer >= t.buffers.size()) throw error { "invalid buffer index" };
   }
 
   for (auto & m : t.meshes) {
@@ -241,6 +246,7 @@ glub::t glub::parse(const char * raw, unsigned size) {
 
       for (auto &[k, a] : p.attributes) {
         if (a < 0 || a > t.accessors.size()) throw error { "invalid accessor index" };
+        // TODO: check if all acessors have the same size
       }
     }
   }

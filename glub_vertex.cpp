@@ -18,23 +18,6 @@ static auto & accessor_vec3(const glub::t & t, int n) {
   return acc;
 }
 
-static auto & buffer_view(const glub::t & t, int n) {
-  if (n < 0 || n >= t.buffer_views.size()) die("buffer views index out-of-bounds");
-  auto & bv = t.buffer_views[n];
-  if (bv.buffer != 0) die("invalid buffer id");
-  return bv;
-}
-static auto & buffer_view_array_buffer(const glub::t & t, int n) {
-  auto & bv = buffer_view(t, n);
-  if (bv.target != glub::buffer_view_type::array_buffer) die("invalid buffer view type");
-  return bv;
-}
-static auto & buffer_view_element_array_buffer(const glub::t & t, int n) {
-  auto & bv = buffer_view(t, n);
-  if (bv.target != glub::buffer_view_type::element_array_buffer) die("invalid buffer view type");
-  return bv;
-}
-
 template<typename T>
 static auto cast(auto & acc, auto & bv, auto & t) {
   auto ptr = reinterpret_cast<const T *>(t.data.begin() + acc.byte_offset + bv.byte_offset);
@@ -73,7 +56,7 @@ void glub::load_all_indices(const glub::t & t, unsigned short * ptr) {
       auto & acc = t.accessors[p.indices];
       if (acc.type != "SCALAR") die("unsupported accessor type");
       if (acc.component_type == glub::accessor_comp_type::unsigned_shrt) {
-        auto & bv = buffer_view_element_array_buffer(t, acc.buffer_view);
+        auto & bv = t.buffer_views[acc.buffer_view];
         auto buf = cast<unsigned short>(acc, bv, t);
         for (auto i = 0; i < acc.count; i++) *ptr++ = *buf++;
       } else die("unsupported accessor component type");
@@ -83,8 +66,9 @@ void glub::load_all_indices(const glub::t & t, unsigned short * ptr) {
 void glub::load_all_normals(const glub::t & t, dotz::vec3 * ptr) {
   for (auto & m : t.meshes) {
     for (auto & p : m.primitives) {
+      if (p.normal == -1) continue;
       auto & acc = accessor_vec3(t, p.normal);
-      auto & bv = buffer_view_array_buffer(t, acc.buffer_view);
+      auto & bv = t.buffer_views[acc.buffer_view];
       auto buf = cast<dotz::vec3>(acc, bv, t);
       for (auto i = 0; i < acc.count; i++) *ptr++ = *buf++;
     }
@@ -93,8 +77,9 @@ void glub::load_all_normals(const glub::t & t, dotz::vec3 * ptr) {
 void glub::load_all_uvs(const glub::t & t, dotz::vec2 * ptr) {
   for (auto & m : t.meshes) {
     for (auto & p : m.primitives) {
+      if (p.texcoord_0 == -1) continue;
       auto & acc = accessor_vec2(t, p.texcoord_0);
-      auto & bv = buffer_view_array_buffer(t, acc.buffer_view);
+      auto & bv = t.buffer_views[acc.buffer_view];
       auto buf = cast<dotz::vec2>(acc, bv, t);
       for (auto i = 0; i < acc.count; i++) *ptr++ = *buf++;
     }
@@ -104,7 +89,7 @@ void glub::load_all_vertices(const glub::t & t, dotz::vec3 * ptr) {
   for (auto & m : t.meshes) {
     for (auto & p : m.primitives) {
       auto & acc = accessor_vec3(t, p.position);
-      auto & bv = buffer_view_array_buffer(t, acc.buffer_view);
+      auto & bv = t.buffer_views[acc.buffer_view];
       auto buf = cast<dotz::vec3>(acc, bv, t);
       for (auto i = 0; i < acc.count; i++) *ptr++ = *buf++;
     }
