@@ -55,11 +55,7 @@ glub::mesh_counts glub::mesh_counts::for_all_meshes(const glub::t & t) {
       if (p.mode != glub::primitive_mode::triangles) die("unsupported primitive mode");
       if (p.indices < 0) die("missing indices in mesh");
 
-      for (auto &[key, a] : p.attributes) {
-        if (key != "POSITION") continue;
-        res.v_count += accessor_vec3(t, a).count;
-      }
-
+      res.v_count += accessor_vec3(t, p.position).count;
       res.i_count += ::accessor(t, p.indices).count;
     }
   }
@@ -70,10 +66,7 @@ void glub::mesh_counts::for_each(const t & t, hai::fn<void, mesh_counts> fn) {
   for (auto & m : t.meshes) {
     for (auto & p : m.primitives) {
       mesh_counts res {};
-      for (auto &[key, a] : p.attributes) {
-        if (key != "POSITION") continue;
-        res.v_count = ::accessor(t, a).count;
-      }
+      res.v_count = ::accessor(t, p.position).count;
       res.i_count = ::accessor(t, p.indices).count;
       fn(res);
     }
