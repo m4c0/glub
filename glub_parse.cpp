@@ -109,6 +109,11 @@ glub::t glub::parse(const char * raw, unsigned size) {
       if (n.has_key("sparse")) throw error { "unsupported: accessor.sparse" };
     });
   }
+  if (root.has_key("animations")) {
+    iter(root, "animations", t.animations, [&](auto & n, auto & o) {
+      parse_string(n, "name", o.name);
+    });
+  }
   if (root.has_key("buffers")) {
     iter(root, "buffers", t.buffers, [&](auto & n, auto & o) {
       parse_string(n, "uri", o.uri);

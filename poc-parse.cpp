@@ -27,6 +27,10 @@ int main() try {
     put("  min:"); for (auto & q : s.min) put(" ", q); putln();
     put("  max:"); for (auto & q : s.max) put(" ", q); putln();
   }
+  putln("animations:");
+  for (auto & s : t.animations) {
+    putln("- ", s.name);
+  }
   putln("buffers:");
   for (auto & s : t.buffers) {
     putln("- ", s.name, " len:", s.byte_length, " uri:", s.uri);

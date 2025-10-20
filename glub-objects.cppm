@@ -49,6 +49,9 @@ export namespace glub {
     hai::array<float> min {};
     jute::heap name {};
   };
+  struct animation {
+    jute::heap name {};
+  };
   struct attribute {
     jute::heap key {};
     int accessor = -1;
@@ -125,6 +128,7 @@ export namespace glub {
   };
   struct t {
     hai::array<accessor> accessors {};
+    hai::array<animation> animations {};
     hai::array<buffer> buffers {};
     hai::array<buffer_view> buffer_views {};
     hai::array<image> images {};
