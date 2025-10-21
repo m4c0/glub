@@ -179,10 +179,6 @@ glub::t glub::parse(const char * raw, unsigned size) {
         for (auto &[k, v] : attrs) {
           auto vi = cast<number>(v).integer();
           *ptr++ = { k, vi };
-
-          if (k == "POSITION") p.position = vi;
-          else if (k == "NORMAL") p.normal = vi;
-          else if (k == "TEXCOORD_0") p.texcoord_0 = vi;
         }
 
         parse_int (prim, "indices",  p.indices);
@@ -245,19 +241,27 @@ glub::t glub::parse(const char * raw, unsigned size) {
 
       if (p.indices < 0) throw error { "missing indices in mesh" };
       if (p.indices >= t.accessors.size()) throw error { "invalid accessor index" };
-      auto & ia = t.accessors[p.indices];
-      if (ia.type != "SCALAR") throw error { "unsupported accessor type" };
-      if (ia.component_type != glub::accessor_comp_type::unsigned_shrt) throw error { "unsupported accessor component type" };
+      auto p_index = &t.accessors[p.indices];
+      if (p_index->type != "SCALAR") throw error { "unsupported accessor type" };
+      if (p_index->component_type != glub::accessor_comp_type::unsigned_shrt) throw error { "unsupported accessor component type" };
 
-      if (p.position < 0) throw error { "missing positions in mesh" };
-      if (p.position >= t.accessors.size()) throw error { "invalid accessor index" };
-      auto & pa = t.accessors[p.position];
-
+      int count = -1;
       for (auto &[k, a] : p.attributes) {
         if (a < 0 || a > t.accessors.size()) throw error { "invalid accessor index" };
 
         auto & aa = t.accessors[a];
-        if (aa.count != pa.count) throw error { "mismatching attribute accessor size" };
+        if (count == -1) count = aa.count;
+        else if (aa.count != count) throw error { "mismatching attribute accessor size" };
+
+        if (aa.component_type != glub::accessor_comp_type::flt) throw error { "unsupported accessor component type" };
+
+        if (k == "POSITION") {
+          if (aa.type != "VEC3") throw error { "unsupported accessor type" };
+        } else if (k == "NORMAL") {
+          if (aa.type != "VEC3") throw error { "unsupported accessor type" };
+        } else if (k == "TEXCOORD_0") {
+          if (aa.type != "VEC2") throw error { "unsupported accessor type" };
+        }
       }
     }
   }
