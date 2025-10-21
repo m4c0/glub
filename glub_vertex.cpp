@@ -54,12 +54,9 @@ void glub::load_all_indices(const glub::t & t, unsigned short * ptr) {
   for (auto & m : t.meshes) {
     for (auto & p : m.primitives) {
       auto & acc = t.accessors[p.indices];
-      if (acc.type != "SCALAR") die("unsupported accessor type");
-      if (acc.component_type == glub::accessor_comp_type::unsigned_shrt) {
-        auto & bv = t.buffer_views[acc.buffer_view];
-        auto buf = cast<unsigned short>(acc, bv, t);
-        for (auto i = 0; i < acc.count; i++) *ptr++ = *buf++;
-      } else die("unsupported accessor component type");
+      auto & bv = t.buffer_views[acc.buffer_view];
+      auto buf = cast<unsigned short>(acc, bv, t);
+      for (auto i = 0; i < acc.count; i++) *ptr++ = *buf++;
     }
   }
 }

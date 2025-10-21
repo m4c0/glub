@@ -242,11 +242,22 @@ glub::t glub::parse(const char * raw, unsigned size) {
   for (auto & m : t.meshes) {
     for (auto & p : m.primitives) {
       if (p.mode != glub::primitive_mode::triangles) throw error { "unsupported primitive mode" };
+
       if (p.indices < 0) throw error { "missing indices in mesh" };
+      if (p.indices >= t.accessors.size()) throw error { "invalid accessor index" };
+      auto & ia = t.accessors[p.indices];
+      if (ia.type != "SCALAR") throw error { "unsupported accessor type" };
+      if (ia.component_type != glub::accessor_comp_type::unsigned_shrt) throw error { "unsupported accessor component type" };
+
+      if (p.position < 0) throw error { "missing positions in mesh" };
+      if (p.position >= t.accessors.size()) throw error { "invalid accessor index" };
+      auto & pa = t.accessors[p.position];
 
       for (auto &[k, a] : p.attributes) {
         if (a < 0 || a > t.accessors.size()) throw error { "invalid accessor index" };
-        // TODO: check if all acessors have the same size
+
+        auto & aa = t.accessors[a];
+        if (aa.count != pa.count) throw error { "mismatching attribute accessor size" };
       }
     }
   }
