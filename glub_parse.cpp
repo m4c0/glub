@@ -257,10 +257,13 @@ glub::t glub::parse(const char * raw, unsigned size) {
 
         if (k == "POSITION") {
           if (aa.type != "VEC3") throw error { "unsupported accessor type" };
+          p.accessors.position = a;
         } else if (k == "NORMAL") {
           if (aa.type != "VEC3") throw error { "unsupported accessor type" };
+          p.accessors.normal = a;
         } else if (k == "TEXCOORD_0") {
           if (aa.type != "VEC2") throw error { "unsupported accessor type" };
+          p.accessors.texcoord_0 = a;
         }
       }
     }

@@ -96,6 +96,12 @@ export namespace glub {
     int material = -1;
     primitive_mode mode = primitive_mode::triangles;
     hai::array<jute::heap> targets {};
+
+    struct {
+      int position = -1;
+      int normal = -1;
+      int texcoord_0 = -1;
+    } accessors;
   };
   struct material {
     jute::heap name {};
