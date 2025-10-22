@@ -235,8 +235,15 @@ glub::t glub::parse(const char * raw, unsigned size) {
     if (bv.buffer < 0 || bv.buffer >= t.buffers.size()) throw error { "invalid buffer index" };
   }
 
+  for (auto & i : t.images) {
+    if (i.buffer_view < 0 || i.buffer_view >= t.buffer_views.size()) throw error { "invalid image buffer view" };
+  }
+
   for (auto & m : t.materials) {
     if (m.base_colour_factor.size() == 0) m.base_colour_factor = hai::array<float>::make(1, 1, 1, 1);
+    if (m.base_colour_texture.tex_coord != 0) throw error { "material coord is not supported" };
+
+    if (m.base_colour_texture.index >= t.textures.size()) throw error { "invalid texture index" };
   }
 
   for (auto & m : t.meshes) {
@@ -271,6 +278,10 @@ glub::t glub::parse(const char * raw, unsigned size) {
         }
       }
     }
+  }
+
+  for (auto & x : t.textures) {
+    if (x.source < 0 || x.source >= t.images.size()) throw error { "invalid texture source" };
   }
 
   return t;
