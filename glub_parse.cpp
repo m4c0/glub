@@ -235,6 +235,10 @@ glub::t glub::parse(const char * raw, unsigned size) {
     if (bv.buffer < 0 || bv.buffer >= t.buffers.size()) throw error { "invalid buffer index" };
   }
 
+  for (auto & m : t.materials) {
+    if (m.base_colour_factor.size() == 0) m.base_colour_factor = hai::array<float>::make(1, 1, 1, 1);
+  }
+
   for (auto & m : t.meshes) {
     for (auto & p : m.primitives) {
       if (p.mode != glub::primitive_mode::triangles) throw error { "unsupported primitive mode" };
