@@ -229,14 +229,17 @@ glub::t glub::parse(const char * raw, unsigned size) {
   for (auto & a : t.accessors) {
     if (a.normalised) throw error { "normalised accessors are not supported" };
     if (a.buffer_view < 0 || a.buffer_view >= t.buffer_views.size()) throw error { "invalid buffer view index" };
+    // TODO: assert buffer don't go over data size
   }
 
   for (auto & bv : t.buffer_views) {
     if (bv.buffer < 0 || bv.buffer >= t.buffers.size()) throw error { "invalid buffer index" };
+    // TODO: assert buffer don't go over data size
   }
 
   for (auto & i : t.images) {
     if (i.buffer_view < 0 || i.buffer_view >= t.buffer_views.size()) throw error { "invalid image buffer view" };
+    if (i.uri.size()) throw error { "images with uri are not supported" };
   }
 
   for (auto & m : t.materials) {
