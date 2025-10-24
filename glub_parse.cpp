@@ -245,8 +245,10 @@ glub::t glub::parse(const char * raw, unsigned size) {
   for (auto & m : t.materials) {
     if (m.base_colour_factor.size() == 0) m.base_colour_factor = hai::array<float>::make(1, 1, 1, 1);
     if (m.base_colour_texture.tex_coord != 0) throw error { "material coord is not supported" };
-
     if (m.base_colour_texture.index >= t.textures.size()) throw error { "invalid texture index" };
+
+    if (m.normal_texture.tex_coord != 0) throw error { "material coord is not supported" };
+    if (m.normal_texture.index >= t.textures.size()) throw error { "invalid texture index" };
   }
 
   for (auto & m : t.meshes) {
