@@ -285,6 +285,15 @@ glub::t glub::parse(const char * raw, unsigned size) {
     }
   }
 
+  for (auto & n : t.nodes) {
+    auto trs = n.translation.size() || n.rotation.size() || n.scale.size();
+    if (n.matrix.size() && trs) throw error { "node with both matrix and TRS" };
+    if (n.matrix.size() && n.matrix.size() != 16) throw error { "invalid node matrix size" };
+    if (n.translation.size() && n.translation.size() != 3) throw error { "invalid node translation size" };
+    if (n.rotation.size() && n.rotation.size() != 4) throw error { "invalid node rotation size" };
+    if (n.scale.size() && n.scale.size() != 3) throw error { "invalid node scale size" };
+  }
+
   for (auto & x : t.textures) {
     if (x.source < 0 || x.source >= t.images.size()) throw error { "invalid texture source" };
   }
